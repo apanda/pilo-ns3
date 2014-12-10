@@ -1,0 +1,1289 @@
+# project ns (3.21) configured on Mon Dec  8 14:42:09 2014 by
+# waf 1.7.13 (abi 98, python 20706f0 on darwin)
+# using ./waf --build-profile=optimized --enable-examples --enable-tests configure
+#
+----------------------------------------
+Setting top to
+/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21
+----------------------------------------
+Setting out to
+/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build
+----------------------------------------
+Checking for 'gcc' (c compiler)
+find program=['gcc', 'cc'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='CC' -> '/usr/bin/gcc'
+find program=['ar'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='AR' -> '/usr/bin/ar'
+/usr/bin/gcc
+----------------------------------------
+Checking for cc version
+6.0.0
+----------------------------------------
+Checking for 'g++' (c++ compiler)
+find program=['g++', 'c++'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='CXX' -> '/usr/bin/g++'
+(tool ar is already loaded, skipping)
+/usr/bin/g++
+------------------------------------------------------
+Checking for compilation flag -march=native... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mcxx: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/test.cc -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '../test.cc', '-c', '-o', 'test.cc.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cc.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog']
+ok
+------------------------------------------------------
+Checking for program python
+/usr/bin/python
+find program=['python'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='PYTHON' -> '/usr/bin/python'
+['/usr/bin/python', '-c', 'import sys\nfor x in sys.version_info: print(str(x))']
+out: 2
+7
+6
+final
+0
+
+['/usr/bin/python', '-c', "from distutils.sysconfig import get_config_var, get_python_lib\n\nprint(repr(get_python_lib(standard_lib=0, prefix='/usr/local') or ''))"]
+out: '/usr/local/lib/python2.7/site-packages'
+
+'/usr/local/lib/python2.7/site-packages'
+
+['/usr/bin/python', '-c', "from distutils.sysconfig import get_config_var, get_python_lib\n\nprint(repr(get_python_lib(plat_specific=1, standard_lib=0, prefix='/usr/local') or ''))"]
+out: '/usr/local/lib/python2.7/site-packages'
+
+'/usr/local/lib/python2.7/site-packages'
+
+------------------------------------------------------
+Checking for python version
+(2, 7, 6, 'final', 0)
+['/usr/bin/python', '-c', "from distutils.sysconfig import get_config_var, get_python_lib\n\nprint(repr(get_config_var('prefix') or ''))\nprint(repr(get_config_var('SO') or ''))\nprint(repr(get_config_var('LDFLAGS') or ''))\nprint(repr(get_config_var('LIBDIR') or ''))\nprint(repr(get_config_var('LIBPL') or ''))\nprint(repr(get_config_var('INCLUDEPY') or ''))\nprint(repr(get_config_var('Py_ENABLE_SHARED') or ''))\nprint(repr(get_config_var('MACOSX_DEPLOYMENT_TARGET') or ''))\nprint(repr(get_config_var('LDSHARED') or ''))\nprint(repr(get_config_var('CFLAGS') or ''))"]
+out: '/System/Library/Frameworks/Python.framework/Versions/2.7'
+'.so'
+'-arch x86_64 -arch i386            -Wl,-F.'
+'/System/Library/Frameworks/Python.framework/Versions/2.7/lib'
+'/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config'
+'/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7'
+''
+'10.10'
+'cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386            -Wl,-F.'
+'-fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE'
+
+'/System/Library/Frameworks/Python.framework/Versions/2.7'
+'.so'
+'-arch x86_64 -arch i386            -Wl,-F.'
+'/System/Library/Frameworks/Python.framework/Versions/2.7/lib'
+'/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config'
+'/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7'
+''
+'10.10'
+'cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386            -Wl,-F.'
+'-fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE'
+
+Configuration returned from ['/usr/bin/python']:
+"prefix = '/System/Library/Frameworks/Python.framework/Versions/2.7'\nSO = '.so'\nLDFLAGS = '-arch x86_64 -arch i386            -Wl,-F.'\nLIBDIR = '/System/Library/Frameworks/Python.framework/Versions/2.7/lib'\nLIBPL = '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config'\nINCLUDEPY = '/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7'\nPy_ENABLE_SHARED = ''\nMACOSX_DEPLOYMENT_TARGET = '10.10'\nLDSHARED = 'cc -bundle -undefined dynamic_lookup -arch x86_64 -arch i386            -Wl,-F.'\nCFLAGS = '-fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE'"
+
+
+
+# try again with -L$python_LIBDIR: ['/System/Library/Frameworks/Python.framework/Versions/2.7/lib']
+
+------------------------------------------------------
+Checking for library python2.7 in LIBDIR
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_05738d3e0a613d90d68203cf1221bbed/test.cpp -> build/.conf_check_05738d3e0a613d90d68203cf1221bbed/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544375504: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$python_LIBPL (some systems don't install the python library in $prefix/lib)
+
+------------------------------------------------------
+Checking for library python2.7 in python_LIBPL
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_846606e967dc0fd9fac5dd2efe42f930/test.cpp -> build/.conf_check_846606e967dc0fd9fac5dd2efe42f930/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543980496: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$prefix/libs, and pythonXY name rather than pythonX.Y (win32)
+
+------------------------------------------------------
+Checking for library python2.7 in $prefix/libs
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_ec380dd17310f5537e928d5a85eb16c6/test.cpp -> build/.conf_check_ec380dd17310f5537e928d5a85eb16c6/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543981584: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$python_LIBDIR: ['/System/Library/Frameworks/Python.framework/Versions/2.7/lib']
+
+------------------------------------------------------
+Checking for library python2.7m in LIBDIR
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_7748b266e42bfeef94859c4237bb6f0e/test.cpp -> build/.conf_check_7748b266e42bfeef94859c4237bb6f0e/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543980752: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$python_LIBPL (some systems don't install the python library in $prefix/lib)
+
+------------------------------------------------------
+Checking for library python2.7m in python_LIBPL
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_e0b9d523e25185d96075c6043e7d107c/test.cpp -> build/.conf_check_e0b9d523e25185d96075c6043e7d107c/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543982672: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$prefix/libs, and pythonXY name rather than pythonX.Y (win32)
+
+------------------------------------------------------
+Checking for library python2.7m in $prefix/libs
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_86138c649d2c71cbeee6e194ffeb7cd6/test.cpp -> build/.conf_check_86138c649d2c71cbeee6e194ffeb7cd6/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544024784: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$python_LIBDIR: ['/System/Library/Frameworks/Python.framework/Versions/2.7/lib']
+
+------------------------------------------------------
+Checking for library python27 in LIBDIR
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_6f6ad2742817ea1f4bcf3700c33591db/test.cpp -> build/.conf_check_6f6ad2742817ea1f4bcf3700c33591db/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544025872: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$python_LIBPL (some systems don't install the python library in $prefix/lib)
+
+------------------------------------------------------
+Checking for library python27 in python_LIBPL
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_e54231c976bc5ca6135b0c9e2a7ce8cb/test.cpp -> build/.conf_check_e54231c976bc5ca6135b0c9e2a7ce8cb/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544026960: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+# try again with -L$prefix/libs, and pythonXY name rather than pythonX.Y (win32)
+
+------------------------------------------------------
+Checking for library python27 in $prefix/libs
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_8ba5b4b150d5990cde2737ec74bf569b/test.cpp -> build/.conf_check_8ba5b4b150d5990cde2737ec74bf569b/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543982032: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+
+
+### LIB NOT FOUND
+
+------------------------------------------------------------------------------------------------
+Checking for program /usr/bin/python-config,python2.7-config,python-config-2.7,python2.7m-config
+/usr/bin/python-config
+find program=['/usr/bin/python-config', 'python2.7-config', 'python-config-2.7', 'python2.7m-config'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='PYTHON_CONFIG' -> '/usr/bin/python-config'
+['/usr/bin/python-config', '--includes']
+out: -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7
+
+Include path for Python extensions (found via python-config --includes): ['/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7']
+
+------------------------------------------------------------------------------------------------
+Checking for header Python.h
+==>
+
+#include <Python.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void Py_Initialize(void);
+	void Py_Finalize(void);
+#ifdef __cplusplus
+}
+#endif
+int main(int argc, char **argv)
+{
+   (void)argc; (void)argv;
+   Py_Initialize();
+   Py_Finalize();
+   return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_1f933b02106127ce3a9f4633a0e368e7/test.cpp -> build/.conf_check_1f933b02106127ce3a9f4633a0e368e7/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-fno-strict-aliasing', '-I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544375568: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-fno-strict-aliasing', '-I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+:-(
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+------------------------------------------------------------------------------------------------
+Asking python-config for pyembed --cflags flags
+['/usr/bin/python-config', '--cflags']
+out: -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -fno-strict-aliasing -fno-common -dynamic -arch x86_64 -arch i386 -g -Os -pipe -fno-common -fno-strict-aliasing -fwrapv -DENABLE_DTRACE -DMACOSX -DNDEBUG -Wall -Wstrict-prototypes -Wshorten-64-to-32 -DNDEBUG -g -fwrapv -Os -Wall -Wstrict-prototypes -DENABLE_DTRACE
+
+yes
+------------------------------------------------------------------------------------------------
+Asking python-config for pyembed --libs flags
+['/usr/bin/python-config', '--libs']
+out: -ldl -framework CoreFoundation -lpython2.7
+
+yes
+------------------------------------------------------------------------------------------------
+Asking python-config for pyembed --ldflags flags
+['/usr/bin/python-config', '--ldflags']
+out: -L/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config -ldl -framework CoreFoundation -lpython2.7
+
+yes
+------------------------------------------------------------------------------------------------
+Getting pyembed flags from python-config
+==>
+
+#include <Python.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void Py_Initialize(void);
+	void Py_Finalize(void);
+#ifdef __cplusplus
+}
+#endif
+int main(int argc, char **argv)
+{
+   (void)argc; (void)argv;
+   Py_Initialize();
+   Py_Finalize();
+   return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_9f22aca0d871aa3f9124d6da6fc5dbf1/test.cpp -> build/.conf_check_9f22aca0d871aa3f9124d6da6fc5dbf1/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-fno-strict-aliasing', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DHAVE_PYEMBED=1', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: clang: error: argument unused during compilation: '-fstrict-overflow'
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544025616: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-arch', 'x86_64', '-arch', 'i386', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-fno-strict-aliasing', '-fno-strict-aliasing', '-fno-common', '-dynamic', '-arch', 'x86_64', '-arch', 'i386', '-fno-common', '-fno-strict-aliasing', '-fwrapv', '-fwrapv', '-I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DHAVE_PYEMBED=1', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '-DENABLE_DTRACE', '-DMACOSX', '-DNDEBUG', '-DNDEBUG', '-DENABLE_DTRACE', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+Could not build a python embedded interpreter
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/bindings/python: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking boost includes
+1_55
+------------------------------------------------------------------------------------------------
+Checking boost libs
+Found the boost path in /usr/local/lib with the libraries:
+    /usr/local/lib/libboost_atomic-mt.a
+    /usr/local/lib/libboost_atomic-mt.dylib
+    /usr/local/lib/libboost_chrono-mt.a
+    /usr/local/lib/libboost_chrono-mt.dylib
+    /usr/local/lib/libboost_chrono.a
+    /usr/local/lib/libboost_chrono.dylib
+    /usr/local/lib/libboost_context-mt.a
+    /usr/local/lib/libboost_context-mt.dylib
+    /usr/local/lib/libboost_context.a
+    /usr/local/lib/libboost_context.dylib
+    /usr/local/lib/libboost_coroutine-mt.a
+    /usr/local/lib/libboost_coroutine-mt.dylib
+    /usr/local/lib/libboost_coroutine.a
+    /usr/local/lib/libboost_coroutine.dylib
+    /usr/local/lib/libboost_date_time-mt.a
+    /usr/local/lib/libboost_date_time-mt.dylib
+    /usr/local/lib/libboost_date_time.a
+    /usr/local/lib/libboost_date_time.dylib
+    /usr/local/lib/libboost_exception-mt.a
+    /usr/local/lib/libboost_exception.a
+    /usr/local/lib/libboost_filesystem-mt.a
+    /usr/local/lib/libboost_filesystem-mt.dylib
+    /usr/local/lib/libboost_filesystem.a
+    /usr/local/lib/libboost_filesystem.dylib
+    /usr/local/lib/libboost_graph-mt.a
+    /usr/local/lib/libboost_graph-mt.dylib
+    /usr/local/lib/libboost_graph.a
+    /usr/local/lib/libboost_graph.dylib
+    /usr/local/lib/libboost_iostreams-mt.a
+    /usr/local/lib/libboost_iostreams-mt.dylib
+    /usr/local/lib/libboost_iostreams.a
+    /usr/local/lib/libboost_iostreams.dylib
+    /usr/local/lib/libboost_locale-mt.a
+    /usr/local/lib/libboost_locale-mt.dylib
+    /usr/local/lib/libboost_log-mt.a
+    /usr/local/lib/libboost_log-mt.dylib
+    /usr/local/lib/libboost_log.a
+    /usr/local/lib/libboost_log.dylib
+    /usr/local/lib/libboost_log_setup-mt.a
+    /usr/local/lib/libboost_log_setup-mt.dylib
+    /usr/local/lib/libboost_log_setup.a
+    /usr/local/lib/libboost_log_setup.dylib
+    /usr/local/lib/libboost_math_c99-mt.a
+    /usr/local/lib/libboost_math_c99-mt.dylib
+    /usr/local/lib/libboost_math_c99.a
+    /usr/local/lib/libboost_math_c99.dylib
+    /usr/local/lib/libboost_math_c99f-mt.a
+    /usr/local/lib/libboost_math_c99f-mt.dylib
+    /usr/local/lib/libboost_math_c99f.a
+    /usr/local/lib/libboost_math_c99f.dylib
+    /usr/local/lib/libboost_math_c99l-mt.a
+    /usr/local/lib/libboost_math_c99l-mt.dylib
+    /usr/local/lib/libboost_math_c99l.a
+    /usr/local/lib/libboost_math_c99l.dylib
+    /usr/local/lib/libboost_math_tr1-mt.a
+    /usr/local/lib/libboost_math_tr1-mt.dylib
+    /usr/local/lib/libboost_math_tr1.a
+    /usr/local/lib/libboost_math_tr1.dylib
+    /usr/local/lib/libboost_math_tr1f-mt.a
+    /usr/local/lib/libboost_math_tr1f-mt.dylib
+    /usr/local/lib/libboost_math_tr1f.a
+    /usr/local/lib/libboost_math_tr1f.dylib
+    /usr/local/lib/libboost_math_tr1l-mt.a
+    /usr/local/lib/libboost_math_tr1l-mt.dylib
+    /usr/local/lib/libboost_math_tr1l.a
+    /usr/local/lib/libboost_math_tr1l.dylib
+    /usr/local/lib/libboost_prg_exec_monitor-mt.a
+    /usr/local/lib/libboost_prg_exec_monitor-mt.dylib
+    /usr/local/lib/libboost_prg_exec_monitor.a
+    /usr/local/lib/libboost_prg_exec_monitor.dylib
+    /usr/local/lib/libboost_program_options-mt.a
+    /usr/local/lib/libboost_program_options-mt.dylib
+    /usr/local/lib/libboost_program_options.a
+    /usr/local/lib/libboost_program_options.dylib
+    /usr/local/lib/libboost_python-mt.a
+    /usr/local/lib/libboost_python-mt.dylib
+    /usr/local/lib/libboost_python.a
+    /usr/local/lib/libboost_python.dylib
+    /usr/local/lib/libboost_random-mt.a
+    /usr/local/lib/libboost_random-mt.dylib
+    /usr/local/lib/libboost_random.a
+    /usr/local/lib/libboost_random.dylib
+    /usr/local/lib/libboost_regex-mt.a
+    /usr/local/lib/libboost_regex-mt.dylib
+    /usr/local/lib/libboost_regex.a
+    /usr/local/lib/libboost_regex.dylib
+    /usr/local/lib/libboost_serialization-mt.a
+    /usr/local/lib/libboost_serialization-mt.dylib
+    /usr/local/lib/libboost_serialization.a
+    /usr/local/lib/libboost_serialization.dylib
+    /usr/local/lib/libboost_signals-mt.a
+    /usr/local/lib/libboost_signals-mt.dylib
+    /usr/local/lib/libboost_signals.a
+    /usr/local/lib/libboost_signals.dylib
+    /usr/local/lib/libboost_system-mt.a
+    /usr/local/lib/libboost_system-mt.dylib
+    /usr/local/lib/libboost_system.a
+    /usr/local/lib/libboost_system.dylib
+    /usr/local/lib/libboost_test_exec_monitor-mt.a
+    /usr/local/lib/libboost_test_exec_monitor.a
+    /usr/local/lib/libboost_thread-mt.a
+    /usr/local/lib/libboost_thread-mt.dylib
+    /usr/local/lib/libboost_timer-mt.a
+    /usr/local/lib/libboost_timer-mt.dylib
+    /usr/local/lib/libboost_timer.a
+    /usr/local/lib/libboost_timer.dylib
+    /usr/local/lib/libboost_unit_test_framework-mt.a
+    /usr/local/lib/libboost_unit_test_framework-mt.dylib
+    /usr/local/lib/libboost_unit_test_framework.a
+    /usr/local/lib/libboost_unit_test_framework.dylib
+    /usr/local/lib/libboost_wave-mt.a
+    /usr/local/lib/libboost_wave-mt.dylib
+    /usr/local/lib/libboost_wave.a
+    /usr/local/lib/libboost_wave.dylib
+    /usr/local/lib/libboost_wserialization-mt.a
+    /usr/local/lib/libboost_wserialization-mt.dylib
+    /usr/local/lib/libboost_wserialization.a
+    /usr/local/lib/libboost_wserialization.dylib
+Trying pattern boost_system(-xgcc[0-9]{0,3})+(-1_55)+
+Trying pattern boost_system(-1_55)+
+Trying pattern boost_system(-1_55)+
+Trying pattern boost_system(-xgcc[0-9]{0,3})+
+Trying pattern boost_system
+Found boost lib libboost_system-mt.a
+Trying pattern boost_signals(-xgcc[0-9]{0,3})+(-1_55)+
+Trying pattern boost_signals(-1_55)+
+Trying pattern boost_signals(-1_55)+
+Trying pattern boost_signals(-xgcc[0-9]{0,3})+
+Trying pattern boost_signals
+Found boost lib libboost_signals-mt.a
+Trying pattern boost_filesystem(-xgcc[0-9]{0,3})+(-1_55)+
+Trying pattern boost_filesystem(-1_55)+
+Trying pattern boost_filesystem(-1_55)+
+Trying pattern boost_filesystem(-xgcc[0-9]{0,3})+
+Trying pattern boost_filesystem
+Found boost lib libboost_filesystem-mt.a
+ok
+------------------------------------------------------------------------------------------------
+Checking for boost linkage
+==>
+#include <boost/system/error_code.hpp>
+int main() { boost::system::error_code c; }
+<==
+[1/2] [32mcxx: build/.conf_check_968fbcee789046a8c143bb4a6e302895/test.cpp -> build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-I/usr/local/include', '-DPYTHONDIR="/usr/local/lib/python2.7/site-packages"', '-DPYTHONARCHDIR="/usr/local/lib/python2.7/site-packages"', '-DHAVE_PYEMBED=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/test.cpp.1.o -> build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/testprog', '-L/usr/local/lib', '-lboost_system-mt', '-lboost_signals-mt', '-lboost_filesystem-mt']
+ok
+------------------------------------------------------------------------------------------------
+Checking for click location
+not found
+------------------------------------------------------------------------------------------------
+Checking for program pkg-config
+/usr/local/bin/pkg-config
+find program=['pkg-config'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='PKGCONFIG' -> '/usr/local/bin/pkg-config'
+------------------------------------------------------------------------------------------------
+Checking for 'gtk+-2.0' >= 2.12
+['/usr/local/bin/pkg-config', '--atleast-version=2.12', 'gtk+-2.0']
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/config-store: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for 'libxml-2.0' >= 2.7
+['/usr/local/bin/pkg-config', '--atleast-version=2.7', 'libxml-2.0']
+['/usr/local/bin/pkg-config', '--cflags', '--libs', 'libxml-2.0']
+out: -I/usr/include/libxml2 -lxml2 
+
+yes
+------------------------------------------------------------------------------------------------
+Checking for type uint128_t
+==>
+#include <stdint.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	if ((uint128_t *) 0) return 0;
+	if (sizeof (uint128_t)) return 0;
+	return 1;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_656b178ce7442053dff90315b31a1cc5/test.cpp -> build/.conf_check_656b178ce7442053dff90315b31a1cc5/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:5:7: error: use of undeclared identifier 'uint128_t'
+        if ((uint128_t *) 0) return 0;
+             ^
+../test.cpp:5:18: error: expected expression
+        if ((uint128_t *) 0) return 0;
+                        ^
+../test.cpp:6:14: error: use of undeclared identifier 'uint128_t'
+        if (sizeof (uint128_t)) return 0;
+                    ^
+3 errors generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543653904: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for type __uint128_t
+==>
+#include <stdint.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	if ((__uint128_t *) 0) return 0;
+	if (sizeof (__uint128_t)) return 0;
+	return 1;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_ace1886511f08627ee2e4ca020806295/test.cpp -> build/.conf_check_ace1886511f08627ee2e4ca020806295/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_ace1886511f08627ee2e4ca020806295/testbuild/test.cpp.1.o -> build/.conf_check_ace1886511f08627ee2e4ca020806295/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_ace1886511f08627ee2e4ca020806295/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking high precision implementation
+128-bit integer (default)
+------------------------------------------------------------------------------------------------
+Checking for header stdint.h
+==>
+#include <stdint.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/test.cpp -> build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/test.cpp.1.o -> build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header inttypes.h
+==>
+#include <inttypes.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/test.cpp -> build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/test.cpp.1.o -> build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header sys/inttypes.h
+==>
+#include <sys/inttypes.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_61ecbfef21667d45a28decabe37fdf64/test.cpp -> build/.conf_check_61ecbfef21667d45a28decabe37fdf64/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:1:10: fatal error: 'sys/inttypes.h' file not found
+#include <sys/inttypes.h>
+         ^
+1 error generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543727184: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for header sys/types.h
+==>
+#include <sys/types.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_8d38681417ac64f5b5b7d4ca87b0e4f3/test.cpp -> build/.conf_check_8d38681417ac64f5b5b7d4ca87b0e4f3/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_8d38681417ac64f5b5b7d4ca87b0e4f3/testbuild/test.cpp.1.o -> build/.conf_check_8d38681417ac64f5b5b7d4ca87b0e4f3/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_8d38681417ac64f5b5b7d4ca87b0e4f3/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header sys/stat.h
+==>
+#include <sys/stat.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_8dd79274749d59bf459dfbeb1200c7d7/test.cpp -> build/.conf_check_8dd79274749d59bf459dfbeb1200c7d7/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '-DHAVE_SYS_TYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_8dd79274749d59bf459dfbeb1200c7d7/testbuild/test.cpp.1.o -> build/.conf_check_8dd79274749d59bf459dfbeb1200c7d7/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_8dd79274749d59bf459dfbeb1200c7d7/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header dirent.h
+==>
+#include <dirent.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_c94d96928742c001335a0559791a93d8/test.cpp -> build/.conf_check_c94d96928742c001335a0559791a93d8/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_c94d96928742c001335a0559791a93d8/testbuild/test.cpp.1.o -> build/.conf_check_c94d96928742c001335a0559791a93d8/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_c94d96928742c001335a0559791a93d8/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header stdlib.h
+==>
+#include <stdlib.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_3a82ef2f96ebcc67f6086c98d2e6291e/test.cpp -> build/.conf_check_3a82ef2f96ebcc67f6086c98d2e6291e/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_3a82ef2f96ebcc67f6086c98d2e6291e/testbuild/test.cpp.1.o -> build/.conf_check_3a82ef2f96ebcc67f6086c98d2e6291e/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_3a82ef2f96ebcc67f6086c98d2e6291e/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header signal.h
+==>
+#include <signal.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_48955ac54d2136a572805353a7b9b62d/test.cpp -> build/.conf_check_48955ac54d2136a572805353a7b9b62d/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_48955ac54d2136a572805353a7b9b62d/testbuild/test.cpp.1.o -> build/.conf_check_48955ac54d2136a572805353a7b9b62d/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_48955ac54d2136a572805353a7b9b62d/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header pthread.h
+==>
+
+#include <pthread.h>
+int main ()
+{
+   pthread_mutex_t m;
+   pthread_mutex_init (&m, NULL);
+   return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_2be466e82e703a744ee152afe2b58299/test.cpp -> build/.conf_check_2be466e82e703a744ee152afe2b58299/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '-DHAVE_SIGNAL_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_2be466e82e703a744ee152afe2b58299/testbuild/test.cpp.1.o -> build/.conf_check_2be466e82e703a744ee152afe2b58299/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_2be466e82e703a744ee152afe2b58299/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header stdint.h
+==>
+#include <stdint.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/test.cpp -> build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_INTTYPES_H=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '-DHAVE_SIGNAL_H=1', '-DHAVE_PTHREAD_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/test.cpp.1.o -> build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_fa0c4ec9c63ac505501cc0863d9bdc48/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header inttypes.h
+==>
+#include <inttypes.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/test.cpp -> build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '-DHAVE_SIGNAL_H=1', '-DHAVE_PTHREAD_H=1', '-DHAVE_STDINT_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/test.cpp.1.o -> build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_7c67b81911f8bf0aede92c843d0e47cf/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header sys/inttypes.h
+==>
+#include <sys/inttypes.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_61ecbfef21667d45a28decabe37fdf64/test.cpp -> build/.conf_check_61ecbfef21667d45a28decabe37fdf64/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '-DHAVE_SIGNAL_H=1', '-DHAVE_PTHREAD_H=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:1:10: fatal error: 'sys/inttypes.h' file not found
+#include <sys/inttypes.h>
+         ^
+1 error generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543653584: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '-DHAVE_SIGNAL_H=1', '-DHAVE_PTHREAD_H=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for library rt
+==>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_5ef57bc0d8aa3565949b6ce1186fd4a7/test.cpp -> build/.conf_check_5ef57bc0d8aa3565949b6ce1186fd4a7/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE___UINT128_T=1', '-DINT64X64_USE_128=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_DIRENT_H=1', '-DHAVE_STDLIB_H=1', '-DHAVE_GETENV=1', '-DHAVE_SIGNAL_H=1', '-DHAVE_PTHREAD_H=1', '-DHAVE_STDINT_H=1', '-DHAVE_INTTYPES_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_5ef57bc0d8aa3565949b6ce1186fd4a7/testbuild/test.cpp.1.o -> build/.conf_check_5ef57bc0d8aa3565949b6ce1186fd4a7/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_5ef57bc0d8aa3565949b6ce1186fd4a7/testbuild/testprog', '-lrt']
+err: ld: library not found for -lrt
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543684176: cxxprogram test.cpp.1.o -> testprog}
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_5ef57bc0d8aa3565949b6ce1186fd4a7/testbuild/testprog', '-lrt']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/core: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for header netpacket/packet.h
+==>
+#include <netpacket/packet.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_f00bb2460dc7019f64c1a347be5879fa/test.cpp -> build/.conf_check_f00bb2460dc7019f64c1a347be5879fa/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:1:10: fatal error: 'netpacket/packet.h' file not found
+#include <netpacket/packet.h>
+         ^
+1 error generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/emu: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543682896: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/emu: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for header sys/ioctl.h
+==>
+#include <sys/ioctl.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_ebd591dbc3bb45aa25214505e9aa0d0f/test.cpp -> build/.conf_check_ebd591dbc3bb45aa25214505e9aa0d0f/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_ebd591dbc3bb45aa25214505e9aa0d0f/testbuild/test.cpp.1.o -> build/.conf_check_ebd591dbc3bb45aa25214505e9aa0d0f/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_ebd591dbc3bb45aa25214505e9aa0d0f/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header net/if.h
+==>
+#include <net/if.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_ab7199aa46fcaa2e15071e73776f8218/test.cpp -> build/.conf_check_ab7199aa46fcaa2e15071e73776f8218/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_ab7199aa46fcaa2e15071e73776f8218/testbuild/test.cpp.1.o -> build/.conf_check_ab7199aa46fcaa2e15071e73776f8218/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_ab7199aa46fcaa2e15071e73776f8218/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header net/ethernet.h
+==>
+#include <net/ethernet.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_6c6255d84543ffa2d8b83c989561eef9/test.cpp -> build/.conf_check_6c6255d84543ffa2d8b83c989561eef9/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_6c6255d84543ffa2d8b83c989561eef9/testbuild/test.cpp.1.o -> build/.conf_check_6c6255d84543ffa2d8b83c989561eef9/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_6c6255d84543ffa2d8b83c989561eef9/testbuild/testprog']
+yes
+------------------------------------------------------------------------------------------------
+Checking for header linux/if_tun.h
+==>
+#include <linux/if_tun.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_79f849e1774b3cde8897857e178c7c8c/test.cpp -> build/.conf_check_79f849e1774b3cde8897857e178c7c8c/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:1:10: fatal error: 'linux/if_tun.h' file not found
+#include <linux/if_tun.h>
+         ^
+1 error generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/fd-net-device: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543653392: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/fd-net-device: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for header netpacket/packet.h
+==>
+#include <netpacket/packet.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_f00bb2460dc7019f64c1a347be5879fa/test.cpp -> build/.conf_check_f00bb2460dc7019f64c1a347be5879fa/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:1:10: fatal error: 'netpacket/packet.h' file not found
+#include <netpacket/packet.h>
+         ^
+1 error generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/fd-net-device: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4544025040: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/fd-net-device: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for NSC location
+not found
+------------------------------------------------------------------------------------------------
+Checking for OpenFlow location
+not found
+------------------------------------------------------------------------------------------------
+Checking for 'sqlite3'
+['/usr/local/bin/pkg-config', '--cflags', '--libs', 'sqlite3']
+err: Package sqlite3 was not found in the pkg-config search path.
+Perhaps you should add the directory containing `sqlite3.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'sqlite3' found
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/stats: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for header linux/if_tun.h
+==>
+#include <linux/if_tun.h>
+
+int main(int argc, char **argv) {
+	(void)argc; (void)argv;
+	return 0;
+}
+
+<==
+[1/2] [32mcxx: build/.conf_check_79f849e1774b3cde8897857e178c7c8c/test.cpp -> build/.conf_check_79f849e1774b3cde8897857e178c7c8c/testbuild/test.cpp.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+err: ../test.cpp:1:10: fatal error: 'linux/if_tun.h' file not found
+#include <linux/if_tun.h>
+         ^
+1 error generated.
+
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/tap-bridge: Test does not build: Traceback (most recent call last):
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Tools/c_config.py", line 459, in run_c_code
+    bld.compile()
+  File "/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/.waf-1.7.13-5a064c2686fe54de4e11018d22148cfc/waflib/Build.py", line 188, in compile
+    raise Errors.BuildError(self.producer.error)
+BuildError: Build failed
+ -> task in 'testprog' failed (exit status 1): 
+	{task 4543726288: cxx test.cpp -> test.cpp.1.o}
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/src/tap-bridge: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for program sudo
+/usr/bin/sudo
+find program=['sudo'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='SUDO' -> '/usr/bin/sudo'
+------------------------------------------------------------------------------------------------
+Checking for program valgrind
+not found
+find program=['valgrind'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='VALGRIND' -> ''
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21: Could not find the program valgrind
+------------------------------------------------------------------------------------------------
+Checking for 'gsl'
+['/usr/local/bin/pkg-config', '--cflags', '--libs', 'gsl']
+err: Package gsl was not found in the pkg-config search path.
+Perhaps you should add the directory containing `gsl.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'gsl' found
+
+not found
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21: The configuration failed
+------------------------------------------------------------------------------------------------
+Checking for compilation flag -Wno-error=deprecated-d... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mcxx: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/test.cc -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-Wno-error=deprecated-declarations', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cc', '-c', '-o', 'test.cc.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cc.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog']
+ok
+------------------------------------------------------------------------------------------------
+Checking for compilation flag -Wno-error=deprecated-d... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mc: build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/test.c -> build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/test.c.1.o
+[0m
+['/usr/bin/gcc', '-Wno-error=deprecated-declarations', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.c', '-c', '-o', 'test.c.1.o']
+[2/2] [33mcprogram: build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/test.c.1.o -> build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/testprog
+[0m
+['/usr/bin/gcc', 'test.c.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/testprog']
+ok
+------------------------------------------------------------------------------------------------
+Checking for compilation flag -fstrict-aliasing... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mcxx: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/test.cc -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-Wno-error=deprecated-declarations', '-fstrict-aliasing', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cc', '-c', '-o', 'test.cc.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cc.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog']
+ok
+------------------------------------------------------------------------------------------------
+Checking for compilation flag -fstrict-aliasing... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mc: build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/test.c -> build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/test.c.1.o
+[0m
+['/usr/bin/gcc', '-fstrict-aliasing', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.c', '-c', '-o', 'test.c.1.o']
+[2/2] [33mcprogram: build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/test.c.1.o -> build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/testprog
+[0m
+['/usr/bin/gcc', 'test.c.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/testprog']
+ok
+------------------------------------------------------------------------------------------------
+Checking for compilation flag -Wstrict-aliasing... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mcxx: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/test.cc -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o
+[0m
+['/usr/bin/g++', '-O3', '-g', '-Wall', '-Werror', '-march=native', '-fstrict-overflow', '-Wno-error=deprecated-declarations', '-fstrict-aliasing', '-Wstrict-aliasing', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.cc', '-c', '-o', 'test.cc.1.o']
+[2/2] [33mcxxprogram: build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/test.cc.1.o -> build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog
+[0m
+['/usr/bin/g++', 'test.cc.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_fe0ca542f39064c5a14ee41a2e983996/testbuild/testprog']
+ok
+------------------------------------------------------------------------------------------------
+Checking for compilation flag -Wstrict-aliasing... support
+==>
+#include <stdio.h>
+int main() { return 0; }
+
+<==
+[1/2] [32mc: build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/test.c -> build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/test.c.1.o
+[0m
+['/usr/bin/gcc', '-Wstrict-aliasing', '-DHAVE_SYS_IOCTL_H=1', '-DHAVE_IF_NETS_H=1', '-DHAVE_NET_ETHERNET_H=1', '../test.c', '-c', '-o', 'test.c.1.o']
+[2/2] [33mcprogram: build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/test.c.1.o -> build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/testprog
+[0m
+['/usr/bin/gcc', 'test.c.1.o', '-o', '/Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21/build/.conf_check_d8a2c40aecfb7c8eac7dd03fcbfb1110/testbuild/testprog']
+ok
+------------------------------------------------------------------------------------------------
+Checking for program doxygen
+not found
+find program=['doxygen'] paths=['/home/apanda/perl5/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481/bin', '/Users/apanda/.rvm/gems/ruby-2.0.0-p481@global/bin', '/Users/apanda/.rvm/rubies/ruby-2.0.0-p481/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/opt/X11/bin', '/usr/texbin', '/home/apanda/perl5/bin', '/Users/apanda/.opam/4.01.0/bin', '/Users/apanda/.rbenv/shims', '/Users/apanda/bin', '/Users/apanda/Library/Python/2.7/bin', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/Library/Python/2.7/bin', '', '/Users/apanda/code/go/bin', '/Users/apanda/code/go-projects/bin', '/Applications/Racket/bin', '/Users/apanda/tlaps/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin', '/Users/apanda/.rvm/bin'] var='DOXYGEN' -> ''
+from /Users/apanda/code/pilo-ns3/ns-allinone-3.21/ns-3.21: Could not find the program doxygen
