@@ -2245,10 +2245,10 @@ def register_Ns3PcapHelper_methods(root_module, cls):
     cls.add_constructor([param('ns3::PcapHelper const &', 'arg0')])
     ## trace-helper.h (module 'network'): ns3::PcapHelper::PcapHelper() [constructor]
     cls.add_constructor([])
-    ## trace-helper.h (module 'network'): ns3::Ptr<ns3::PcapFileWrapper> ns3::PcapHelper::CreateFile(std::string filename, std::_Ios_Openmode filemode, uint32_t dataLinkType, uint32_t snapLen=65535, int32_t tzCorrection=0) [member function]
+    ## trace-helper.h (module 'network'): ns3::Ptr<ns3::PcapFileWrapper> ns3::PcapHelper::CreateFile(std::string filename, std::_Ios_Openmode filemode, uint32_t dataLinkType, uint32_t snapLen=std::numeric_limits<unsigned int>::max(), int32_t tzCorrection=0) [member function]
     cls.add_method('CreateFile', 
                    'ns3::Ptr< ns3::PcapFileWrapper >', 
-                   [param('std::string', 'filename'), param('std::_Ios_Openmode', 'filemode'), param('uint32_t', 'dataLinkType'), param('uint32_t', 'snapLen', default_value='65535'), param('int32_t', 'tzCorrection', default_value='0')])
+                   [param('std::string', 'filename'), param('std::_Ios_Openmode', 'filemode'), param('uint32_t', 'dataLinkType'), param('uint32_t', 'snapLen', default_value='std::numeric_limits<unsigned int>::max()'), param('int32_t', 'tzCorrection', default_value='0')])
     ## trace-helper.h (module 'network'): std::string ns3::PcapHelper::GetFilenameFromDevice(std::string prefix, ns3::Ptr<ns3::NetDevice> device, bool useObjectNames=true) [member function]
     cls.add_method('GetFilenameFromDevice', 
                    'std::string', 
@@ -2509,10 +2509,10 @@ def register_Ns3TypeId_methods(root_module, cls):
     cls.add_method('AddAttribute', 
                    'ns3::TypeId', 
                    [param('std::string', 'name'), param('std::string', 'help'), param('uint32_t', 'flags'), param('ns3::AttributeValue const &', 'initialValue'), param('ns3::Ptr< ns3::AttributeAccessor const >', 'accessor'), param('ns3::Ptr< ns3::AttributeChecker const >', 'checker')])
-    ## type-id.h (module 'core'): ns3::TypeId ns3::TypeId::AddTraceSource(std::string name, std::string help, ns3::Ptr<ns3::TraceSourceAccessor const> accessor) [member function]
+    ## type-id.h (module 'core'): ns3::TypeId ns3::TypeId::AddTraceSource(std::string name, std::string help, ns3::Ptr<ns3::TraceSourceAccessor const> accessor, std::string callback="(not yet documented)") [member function]
     cls.add_method('AddTraceSource', 
                    'ns3::TypeId', 
-                   [param('std::string', 'name'), param('std::string', 'help'), param('ns3::Ptr< ns3::TraceSourceAccessor const >', 'accessor')])
+                   [param('std::string', 'name'), param('std::string', 'help'), param('ns3::Ptr< ns3::TraceSourceAccessor const >', 'accessor'), param('std::string', 'callback', default_value='"(not yet documented)"')])
     ## type-id.h (module 'core'): ns3::TypeId::AttributeInformation ns3::TypeId::GetAttribute(uint32_t i) const [member function]
     cls.add_method('GetAttribute', 
                    'ns3::TypeId::AttributeInformation', 
@@ -2563,6 +2563,11 @@ def register_Ns3TypeId_methods(root_module, cls):
                    'uint32_t', 
                    [], 
                    is_static=True)
+    ## type-id.h (module 'core'): std::size_t ns3::TypeId::GetSize() const [member function]
+    cls.add_method('GetSize', 
+                   'std::size_t', 
+                   [], 
+                   is_const=True)
     ## type-id.h (module 'core'): ns3::TypeId::TraceSourceInformation ns3::TypeId::GetTraceSource(uint32_t i) const [member function]
     cls.add_method('GetTraceSource', 
                    'ns3::TypeId::TraceSourceInformation', 
@@ -2639,6 +2644,10 @@ def register_Ns3TypeId_methods(root_module, cls):
     cls.add_method('SetParent', 
                    'ns3::TypeId', 
                    [param('ns3::TypeId', 'tid')])
+    ## type-id.h (module 'core'): ns3::TypeId ns3::TypeId::SetSize(std::size_t size) [member function]
+    cls.add_method('SetSize', 
+                   'ns3::TypeId', 
+                   [param('std::size_t', 'size')])
     ## type-id.h (module 'core'): void ns3::TypeId::SetUid(uint16_t tid) [member function]
     cls.add_method('SetUid', 
                    'void', 
@@ -2673,6 +2682,8 @@ def register_Ns3TypeIdTraceSourceInformation_methods(root_module, cls):
     cls.add_constructor([param('ns3::TypeId::TraceSourceInformation const &', 'arg0')])
     ## type-id.h (module 'core'): ns3::TypeId::TraceSourceInformation::accessor [variable]
     cls.add_instance_attribute('accessor', 'ns3::Ptr< ns3::TraceSourceAccessor const >', is_const=False)
+    ## type-id.h (module 'core'): ns3::TypeId::TraceSourceInformation::callback [variable]
+    cls.add_instance_attribute('callback', 'std::string', is_const=False)
     ## type-id.h (module 'core'): ns3::TypeId::TraceSourceInformation::help [variable]
     cls.add_instance_attribute('help', 'std::string', is_const=False)
     ## type-id.h (module 'core'): ns3::TypeId::TraceSourceInformation::name [variable]
@@ -4002,26 +4013,26 @@ def register_Ns3CsmaChannel_methods(root_module, cls):
     cls.add_method('TransmitStart', 
                    'bool', 
                    [param('ns3::Ptr< ns3::Packet >', 'p'), param('uint32_t', 'srcId')])
-    ## csma-channel.h (module 'csma'): bool ns3::CsmaChannel::TransmitEnd() [member function]
+    ## csma-channel.h (module 'csma'): bool ns3::CsmaChannel::TransmitEnd(uint32_t deviceId) [member function]
     cls.add_method('TransmitEnd', 
                    'bool', 
-                   [])
-    ## csma-channel.h (module 'csma'): void ns3::CsmaChannel::PropagationCompleteEvent() [member function]
+                   [param('uint32_t', 'deviceId')])
+    ## csma-channel.h (module 'csma'): void ns3::CsmaChannel::PropagationCompleteEvent(uint32_t deviceId) [member function]
     cls.add_method('PropagationCompleteEvent', 
                    'void', 
-                   [])
+                   [param('uint32_t', 'deviceId')])
     ## csma-channel.h (module 'csma'): int32_t ns3::CsmaChannel::GetDeviceNum(ns3::Ptr<ns3::CsmaNetDevice> device) [member function]
     cls.add_method('GetDeviceNum', 
                    'int32_t', 
                    [param('ns3::Ptr< ns3::CsmaNetDevice >', 'device')])
-    ## csma-channel.h (module 'csma'): ns3::WireState ns3::CsmaChannel::GetState() [member function]
+    ## csma-channel.h (module 'csma'): ns3::WireState ns3::CsmaChannel::GetState(uint32_t deviceId) [member function]
     cls.add_method('GetState', 
                    'ns3::WireState', 
-                   [])
-    ## csma-channel.h (module 'csma'): bool ns3::CsmaChannel::IsBusy() [member function]
+                   [param('uint32_t', 'deviceId')])
+    ## csma-channel.h (module 'csma'): bool ns3::CsmaChannel::IsBusy(uint32_t deviceId) [member function]
     cls.add_method('IsBusy', 
                    'bool', 
-                   [])
+                   [param('uint32_t', 'deviceId')])
     ## csma-channel.h (module 'csma'): bool ns3::CsmaChannel::IsActive(uint32_t deviceId) [member function]
     cls.add_method('IsActive', 
                    'bool', 
@@ -5090,11 +5101,6 @@ def register_Ns3Packet_methods(root_module, cls):
                    'uint64_t', 
                    [], 
                    is_const=True)
-    ## packet.h (module 'network'): uint8_t const * ns3::Packet::PeekData() const [member function]
-    cls.add_method('PeekData', 
-                   'uint8_t const *', 
-                   [], 
-                   deprecated=True, is_const=True)
     ## packet.h (module 'network'): uint32_t ns3::Packet::PeekHeader(ns3::Header & header) const [member function]
     cls.add_method('PeekHeader', 
                    'uint32_t', 

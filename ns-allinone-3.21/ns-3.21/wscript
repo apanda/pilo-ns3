@@ -26,7 +26,7 @@ import wutils
 # By default, all modules will be enabled, examples will be disabled,
 # and tests will be disabled.
 modules_enabled  = ['all_modules']
-examples_enabled = False
+examples_enabled = True
 tests_enabled    = False
 
 # Bug 1868:  be conservative about -Wstrict-overflow for optimized builds
@@ -187,7 +187,7 @@ def options(opt):
     opt.add_option('--enable-examples',
                    help=('Build the ns-3 examples.'),
                    dest='enable_examples', action='store_true',
-                   default=False)
+                   default=True)
     opt.add_option('--disable-examples',
                    help=('Do not build the ns-3 examples.'),
                    dest='disable_examples', action='store_true',
@@ -208,7 +208,6 @@ def options(opt):
                          'but do not wait for ns-3 to finish the full build.'),
                    action="store_true", default=False,
                    dest='doxygen_no_build')
-
     # options provided in subdirectories
     opt.recurse('src')
     opt.recurse('bindings/python')
@@ -500,6 +499,12 @@ def configure(conf):
                                  conf.env['ENABLE_GSL'],
                                  "GSL not found")
 
+    yaml_cflags = conf.check_cfg(package='yaml-cpp', args=['--cflags'],
+                               uselib_store='YAML', mandatory=True)
+    yaml_ldflags = conf.check_cfg(package='yaml-cpp', args=['--libs'],
+                               uselib_store='YAML', mandatory=True)
+
+    #
     # for compiling C code, copy over the CXX* flags
     conf.env.append_value('CCFLAGS', conf.env['CXXFLAGS'])
 
@@ -514,6 +519,11 @@ def configure(conf):
     add_gcc_flag('-Wno-error=deprecated-declarations')
     add_gcc_flag('-fstrict-aliasing')
     add_gcc_flag('-Wstrict-aliasing')
+    for fl in shlex.split(yaml_cflags):
+      add_gcc_flag(fl)
+
+    for fl in shlex.split(yaml_ldflags):
+      conf.env.append_value('LINKFLAGS', fl)
 
     try:
         conf.find_program('doxygen', var='DOXYGEN')
@@ -628,19 +638,24 @@ def register_ns3_script(bld, name, dependencies=('core',)):
 
 def add_examples_programs(bld):
     env = bld.env
+    print "Building examples %s"%env['ENABLE_EXAMPLES']
     if env['ENABLE_EXAMPLES']:
         for dir in os.listdir('examples'):
+            print "Adding example %s"%dir
             if dir.startswith('.') or dir == 'CVS':
                 continue
             if os.path.isdir(os.path.join('examples', dir)):
+                print "Recursing through %s"%dir
                 bld.recurse(os.path.join('examples', dir))
 
 def add_scratch_programs(bld):
+    print "Looking at building scratch?"
     all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
     for filename in os.listdir("scratch"):
         if filename.startswith('.') or filename == 'CVS':
 	    continue
         if os.path.isdir(os.path.join("scratch", filename)):
+            print "Looking at building scratch? %s"%filename
             obj = bld.create_ns3_program(filename, all_modules)
             obj.path = obj.path.find_dir('scratch').find_dir(filename)
             obj.source = obj.path.ant_glob('*.cc')
@@ -753,6 +768,7 @@ def build(bld):
                 if mod in bld.env['NS3_ENABLED_MODULES']:
                     bld.env.append_value('NS3_ENABLED_MODULE_TEST_LIBRARIES', testlib)
 
+    print "Building examples"
     add_examples_programs(bld)
     add_scratch_programs(bld)
 

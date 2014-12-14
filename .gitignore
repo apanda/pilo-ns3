@@ -31,3 +31,4 @@
 .lock-*
 
 build
+*.pyc
