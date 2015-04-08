@@ -5,13 +5,17 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <list>
+#include <vector>
 #include <utility>
 #include <iostream>
 #include <yaml-cpp/yaml.h>
+#include <boost/algorithm/string.hpp>
 #include "ns3/core-module.h"
 #include "ns3/csma-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/internet-module.h"
+#include "ns3/point-to-point-module.h"
 
 using namespace ns3;
 
@@ -66,7 +70,6 @@ main (int argc, char *argv[])
 // Allow the user to override any of the defaults and the above Bind() at
 // run-time, via command-line arguments
 //
-  Address serverAddress;
   std::string setupYaml;
   CommandLine cmd;
   cmd.AddValue("setup", "YAML file with topology and setup", setupYaml);
@@ -74,10 +77,6 @@ main (int argc, char *argv[])
 
   std::cout << "Using setup file " << setupYaml << std::endl;
   YAML::Node setupDoc = YAML::LoadFile(setupYaml);
-  std::cout << "Link size " << setupDoc["links"].size() << std::endl;
-  for (int32_t i = 0; i < setupDoc["links"].size(); i++) {
-    std::cout << setupDoc["links"][i] << std::endl;
-  }
 //
 // Explicitly create the nodes required by the topology.
 //
@@ -92,52 +91,59 @@ main (int argc, char *argv[])
   NodeContainer n;
   n.Create (nodes);
 
+
+
+//
+// Explicitly create the channels required by the topology (specified by the YAML file).
+//
+  NS_LOG_INFO ("Create channels.");
+  std::list< std::pair<std::string, std::string> > links;
+  std::list< std::pair<int32_t, int32_t> > linksNative;
+  PointToPointHelper p2p;
+
+  // TODO: Change this/make this more general.
+  p2p.SetDeviceAttribute("DataRate", StringValue("10Gbps"));
+  p2p.SetChannelAttribute("Delay", TimeValue(Time::FromDouble(0.25, Time::MS))); 
+
+  // Need this to assign IP addresses. Basically this is just installing a new IPv4 stack.
+  NS_LOG_INFO ("Install internet stack.");
   InternetStackHelper internet;
+  // For now, let us not do IPv6. Really no reason for this other than laziness.
+  internet.SetIpv6StackInstall(false);
+  internet.SetIpv4StackInstall(true);
+
+  // TODO: Switch to PILO version, but roughly this for now.
+  // We want to just allow static routes. Nesting it within list routing is helpful in terms of adding
+  // other strategies later. For example, we would really want a PILO control router at high priority and
+  // a data plane router at higher priority.
+  Ipv4StaticRoutingHelper staticRouting;
+  Ipv4ListRoutingHelper listRouting;
+  listRouting.Add (staticRouting, 0);
+  internet.SetRoutingHelper (listRouting);
   internet.Install (n);
 
-  NS_LOG_INFO ("Create channels.");
-//
-// Explicitly create the channels required by the topology (shown above).
-//
-  CsmaHelper csma;
-  csma.SetChannelAttribute ("DataRate", DataRateValue (DataRate (5000000)));
-  csma.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (2)));
-  csma.SetDeviceAttribute ("Mtu", UintegerValue (1400));
-  NetDeviceContainer d = csma.Install (n);
+  // Use this to assign IPv4 addresses.
+  Ipv4AddressHelper ipv4;
+  ipv4.SetBase("10.0.0.0", "255.255.255.0");
+  // A collection of all the newly added IPv4 interfaces 
+  Ipv4InterfaceContainer addrs;
 
-//
-// We've got the "hardware" in place.  Now we need to add IP addresses.
-//
-  NS_LOG_INFO ("Assign IP Addresses.");
-  Ipv6AddressHelper ipv6;
-  ipv6.SetBase ("2001:0000:f00d:cafe::", Ipv6Prefix (64));
-  Ipv6InterfaceContainer i6 = ipv6.Assign (d);
-  serverAddress = Address(i6.GetAddress (1,1));
+  NetDeviceContainer netDevices;
+  for (int32_t i = 0; i < setupDoc["links"].size(); i++) {
+    std::vector<std::string> parts;
+    boost::split(parts, setupDoc["links"][i].as<std::string>(), boost::is_any_of("-"));
+    links.push_back(std::make_pair(parts[0], parts[1]));
+    linksNative.push_back(std::make_pair(nodeMap[parts[0]], nodeMap[parts[1]]));
+    NodeContainer linkNodes(n.Get(nodeMap[parts[0]]));
+    linkNodes.Add(n.Get(nodeMap[parts[1]]));
+    NetDeviceContainer device = p2p.Install(linkNodes);
+    netDevices.Add(device);
+    addrs.Add(ipv4.Assign(device));
+    ipv4.NewNetwork();
+  }
 
-  NS_LOG_INFO ("Create Applications.");
-//
-// Create a UdpEchoServer application on node one.
-//
-  uint16_t port = 9;  // well-known echo port number
-  UdpEchoServerHelper server (port);
-  ApplicationContainer apps = server.Install (n.Get (1));
-  apps.Start (Seconds (1.0));
-  apps.Stop (Seconds (10.0));
+  std::cout << "Found " << links.size() << " links " << std::endl; 
 
-//
-// Create a UdpEchoClient application to send UDP datagrams from node zero to
-// node one.
-//
-  uint32_t packetSize = 1024;
-  uint32_t maxPacketCount = 1;
-  Time interPacketInterval = Seconds (1.);
-  UdpEchoClientHelper client (serverAddress, port);
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  client.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  client.SetAttribute ("PacketSize", UintegerValue (packetSize));
-  apps = client.Install (n.Get (0));
-  apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (10.0));
 
 #if 0
 //
@@ -151,10 +157,6 @@ main (int argc, char *argv[])
   uint8_t fill[] = { 0, 1, 2, 3, 4, 5, 6};
   client.SetFill (apps.Get (0), fill, sizeof(fill), 1024);
 #endif
-
-  AsciiTraceHelper ascii;
-  csma.EnableAsciiAll (ascii.CreateFileStream ("udp-echo.tr"));
-  csma.EnablePcapAll ("udp-echo", false);
 
 //
 // Now, do the actual simulation.

@@ -41,7 +41,8 @@ Ipv4Header::Ipv4Header ()
     m_fragmentOffset (0),
     m_checksum (0),
     m_goodChecksum (true),
-    m_headerSize(5*4)
+    m_headerSize(5*4),
+    m_piloControl (false)
 {
 }
 
@@ -374,8 +375,7 @@ uint32_t
 Ipv4Header::GetSerializedSize (void) const
 {
   NS_LOG_FUNCTION (this);
-  //return 5 * 4;
-	return m_headerSize;
+  return m_headerSize;
 }
 
 void
@@ -398,6 +398,11 @@ Ipv4Header::Serialize (Buffer::Iterator start) const
   if (m_flags & MORE_FRAGMENTS) 
     {
       flagsFrag |= (1<<5);
+    }
+  if (m_piloControl) 
+    {
+      // apanda: Pack PILO specific flag in evil bit.
+      flagsFrag |= (1<<7);
     }
   i.WriteU8 (flagsFrag);
   uint8_t frag = fragmentOffset & 0xff;
@@ -433,6 +438,7 @@ Ipv4Header::Deserialize (Buffer::Iterator start)
   m_identification = i.ReadNtohU16 ();
   uint8_t flags = i.ReadU8 ();
   m_flags = 0;
+  m_piloControl = false;
   if (flags & (1<<6)) 
     {
       m_flags |= DONT_FRAGMENT;
@@ -440,6 +446,10 @@ Ipv4Header::Deserialize (Buffer::Iterator start)
   if (flags & (1<<5)) 
     {
       m_flags |= MORE_FRAGMENTS;
+    }
+  if (flags & (1<<7)) 
+    {
+      m_piloControl = true;
     }
   i.Prev ();
   m_fragmentOffset = i.ReadU8 () & 0x1f;
@@ -463,6 +473,18 @@ Ipv4Header::Deserialize (Buffer::Iterator start)
       m_goodChecksum = (checksum == 0);
     }
   return GetSerializedSize ();
+}
+
+bool
+Ipv4Header::IsPiloControl (void) const
+{
+  return m_piloControl;
+}
+
+void 
+Ipv4Header::SetPiloControl (const bool ctl)
+{
+  m_piloControl = ctl;
 }
 
 } // namespace ns3

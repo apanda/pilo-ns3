@@ -223,6 +223,16 @@ public:
   bool IsChecksumOk (void) const;
 
   /**
+   * \returns true if the packet is a Pilo control packet, false otherwise
+   */
+  bool IsPiloControl (void) const;
+  /**
+   * Set PILO control bit
+   * \param ctl is this a control packet
+   */
+  void SetPiloControl (const bool ctl);
+
+  /**
    * \brief Get the type ID.
    * \return the object TypeId
    */
@@ -254,6 +264,7 @@ private:
   uint16_t m_checksum; //!< checksum
   bool m_goodChecksum; //!< true if checksum is correct
   uint16_t m_headerSize; //!< IP header size
+  bool m_piloControl; //!< Is this a PILO control packet
 };
 
 } // namespace ns3

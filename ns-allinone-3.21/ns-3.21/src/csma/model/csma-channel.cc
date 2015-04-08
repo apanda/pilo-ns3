@@ -51,7 +51,7 @@ CsmaChannel::GetTypeId (void)
                    MakeTimeChecker ())
     .AddAttribute ("FullDuplex", "Whether the channel is full duplex",
                    TypeId::ATTR_CONSTRUCT,
-                   BooleanValue (false),
+                   BooleanValue (true),
                    MakeBooleanAccessor (&CsmaChannel::m_fullDuplex),
                    MakeBooleanChecker ())
   ;
