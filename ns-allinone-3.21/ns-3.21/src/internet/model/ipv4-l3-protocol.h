@@ -431,6 +431,9 @@ private:
 
   SocketList m_sockets; //!< List of IPv4 raw sockets.
 
+  // TODO: @apanda is there a different place to put this variable.
+  uint16_t m_currentId;
+
   /**
    * \class Fragments
    * \brief A Set of Fragment belonging to the same packet (src, dst, identification and proto)

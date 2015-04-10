@@ -92,6 +92,7 @@ Ipv4L3Protocol::GetTypeId (void)
 Ipv4L3Protocol::Ipv4L3Protocol()
 {
   NS_LOG_FUNCTION (this);
+  m_currentId = 0;
 }
 
 Ipv4L3Protocol::~Ipv4L3Protocol ()
@@ -735,6 +736,13 @@ Ipv4L3Protocol::BuildHeader (
   ipHeader.SetPayloadSize (payloadSize);
   ipHeader.SetTtl (ttl);
   ipHeader.SetTos (tos);
+
+  // TODO: @apanda, not sure if this is the best place to put this in, we don't really need this for non-PILO packets.
+  ipHeader.SetIdentification (m_currentId);
+  m_currentId ++;
+
+  // TODO: @apanda, definitely remove this, just doing this to check.
+  ipHeader.SetPiloControl (true);
 
   uint64_t src = source.Get ();
   uint64_t dst = destination.Get ();

@@ -8,6 +8,8 @@
 #include <list>
 #include <utility>
 #include <stdint.h>
+#include <unordered_map>
+#include <unordered_set>
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv4-header.h"
 #include "ns3/socket.h"
@@ -27,6 +29,8 @@ class Node;
 
 class Ipv4PiloCtlRouting : public Ipv4RoutingProtocol
 {
+  typedef std::unordered_map<Ipv4Address, std::unordered_set<uint16_t>, Ipv4AddressHash> 
+            previous_packets;
 public:
   Ipv4PiloCtlRouting ();
 
@@ -130,6 +134,7 @@ public:
 
 protected:
   Ptr<Ipv4> m_ipv4; // IPv4 instance for this router
+  previous_packets m_filter;
 };
 
 }

@@ -92,7 +92,6 @@ main (int argc, char *argv[])
   n.Create (nodes);
 
 
-
 //
 // Explicitly create the channels required by the topology (specified by the YAML file).
 //
@@ -101,10 +100,7 @@ main (int argc, char *argv[])
   std::list< std::pair<int32_t, int32_t> > linksNative;
   PointToPointHelper p2p;
 
-  // TODO: Change this/make this more general.
-  p2p.SetDeviceAttribute("DataRate", StringValue("10Gbps"));
-  p2p.SetChannelAttribute("Delay", TimeValue(Time::FromDouble(0.25, Time::MS))); 
-
+  // The order here (InternetStack installed before p2p links) is meaningful. Reversing this could be bad.
   // Need this to assign IP addresses. Basically this is just installing a new IPv4 stack.
   NS_LOG_INFO ("Install internet stack.");
   InternetStackHelper internet;
@@ -112,12 +108,20 @@ main (int argc, char *argv[])
   internet.SetIpv6StackInstall(false);
   internet.SetIpv4StackInstall(true);
 
+  // TODO: Change this/make this more general.
+  p2p.SetDeviceAttribute("DataRate", StringValue("10Gbps"));
+  p2p.SetChannelAttribute("Delay", TimeValue(Time::FromDouble(0.25, Time::MS))); 
+
+
   // TODO: Switch to PILO version, but roughly this for now.
   // We want to just allow static routes. Nesting it within list routing is helpful in terms of adding
   // other strategies later. For example, we would really want a PILO control router at high priority and
   // a data plane router at higher priority.
+  Ipv4PiloCtlRoutingHelper ctlRouting;
   Ipv4StaticRoutingHelper staticRouting;
   Ipv4ListRoutingHelper listRouting;
+  // We want ctlRouting to have the highest priority
+  listRouting.Add (ctlRouting, 100);
   listRouting.Add (staticRouting, 0);
   internet.SetRoutingHelper (listRouting);
   internet.Install (n);
@@ -143,6 +147,28 @@ main (int argc, char *argv[])
   }
 
   std::cout << "Found " << links.size() << " links " << std::endl; 
+
+  // Create a UDP server to start of
+  Ptr<Node> serverNode = n.Get(nodeMap["h0"]);
+  uint16_t port = 4000;
+  UdpServerHelper server (port);
+  ApplicationContainer apps = server.Install (serverNode);
+  apps.Start (Seconds (1.0));
+  apps.Stop (Seconds (10.0));
+  Ipv4Address serverAddress = serverNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+
+  // Create a UDP client
+  Ptr<Node> clientNode = n.Get(nodeMap["h1"]);
+  uint32_t MaxPacketSize = 1024;
+  Time interPacketInterval = Seconds (0.05);
+  uint32_t maxPacketCount = 320;
+  UdpClientHelper client (serverAddress, port);
+  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  client.SetAttribute ("Interval", TimeValue (interPacketInterval));
+  client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  apps = client.Install (clientNode);
+  apps.Start (Seconds (2.0));
+  apps.Stop (Seconds (10.0));
 
 
 #if 0
