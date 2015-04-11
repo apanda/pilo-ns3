@@ -18,9 +18,8 @@
  * Author: Mohamed Amine Ismail <amine.ismail@sophia.inria.fr>
  */
 #include "pilo-ctl-helper.h"
-#include "ns3/udp-server.h"
-#include "ns3/udp-client.h"
-#include "ns3/udp-trace-client.h"
+#include "ns3/pilo-ctl-server.h"
+#include "ns3/pilo-ctl-client.h"
 #include "ns3/uinteger.h"
 #include "ns3/string.h"
 
@@ -62,6 +61,51 @@ Ptr<PiloCtlServer>
 PiloCtlServerHelper::GetServer (void)
 {
   return m_server;
+}
+
+PiloCtlClientHelper::PiloCtlClientHelper ()
+{
+}
+
+PiloCtlClientHelper::PiloCtlClientHelper (Address address, uint16_t port)
+{
+  m_factory.SetTypeId (PiloCtlClient::GetTypeId ());
+  SetAttribute ("RemoteAddress", AddressValue (address));
+  SetAttribute ("RemotePort", UintegerValue (port));
+}
+
+PiloCtlClientHelper::PiloCtlClientHelper (Ipv4Address address, uint16_t port)
+{
+  m_factory.SetTypeId (PiloCtlClient::GetTypeId ());
+  SetAttribute ("RemoteAddress", AddressValue (Address(address)));
+  SetAttribute ("RemotePort", UintegerValue (port));
+}
+
+PiloCtlClientHelper::PiloCtlClientHelper (Ipv6Address address, uint16_t port)
+{
+  m_factory.SetTypeId (PiloCtlClient::GetTypeId ());
+  SetAttribute ("RemoteAddress", AddressValue (Address(address)));
+  SetAttribute ("RemotePort", UintegerValue (port));
+}
+
+void
+PiloCtlClientHelper::SetAttribute (std::string name, const AttributeValue &value)
+{
+  m_factory.Set (name, value);
+}
+
+ApplicationContainer
+PiloCtlClientHelper::Install (NodeContainer c)
+{
+  ApplicationContainer apps;
+  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+      Ptr<Node> node = *i;
+      Ptr<PiloCtlClient> client = m_factory.Create<PiloCtlClient> ();
+      node->AddApplication (client);
+      apps.Add (client);
+    }
+  return apps;
 }
 
 } // namespace ns3

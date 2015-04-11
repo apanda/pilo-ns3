@@ -98,7 +98,6 @@ private:
   uint16_t m_port; //!< Port on which we listen for incoming packets.
   Ptr<Socket> m_socket; //!< IPv4 Socket
   uint32_t m_received; //!< Number of received packets
-  PacketLossCounter m_lossCounter; //!< Lost packet counter
 };
 
 } // namespace ns3

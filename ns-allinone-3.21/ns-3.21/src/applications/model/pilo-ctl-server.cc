@@ -63,7 +63,6 @@ PiloCtlServer::GetTypeId (void)
 }
 
 PiloCtlServer::PiloCtlServer ()
-  : m_lossCounter (0)
 {
   NS_LOG_FUNCTION (this);
   m_received=0;
@@ -78,21 +77,20 @@ uint16_t
 PiloCtlServer::GetPacketWindowSize () const
 {
   NS_LOG_FUNCTION (this);
-  return m_lossCounter.GetBitMapSize ();
+  return 0;
 }
 
 void
 PiloCtlServer::SetPacketWindowSize (uint16_t size)
 {
   NS_LOG_FUNCTION (this << size);
-  m_lossCounter.SetBitMapSize (size);
 }
 
 uint32_t
 PiloCtlServer::GetLost (void) const
 {
   NS_LOG_FUNCTION (this);
-  return m_lossCounter.GetLost ();
+  return 0;
 }
 
 uint32_t
@@ -172,7 +170,6 @@ PiloCtlServer::HandleRead (Ptr<Socket> socket)
                            " Delay: " << Simulator::Now () - seqTs.GetTs ());
             }
 
-          m_lossCounter.NotifyReceived (currentSequenceNumber);
           m_received++;
         }
     }
