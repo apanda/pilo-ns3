@@ -39,6 +39,7 @@
 #include "icmpv4-l4-protocol.h"
 #include "ipv4-interface.h"
 #include "ipv4-raw-socket-impl.h"
+#include "pilo-socket.h"
 
 NS_LOG_COMPONENT_DEFINE ("Ipv4L3Protocol");
 
@@ -146,6 +147,30 @@ Ipv4L3Protocol::CreateRawSocket (void)
 }
 void 
 Ipv4L3Protocol::DeleteRawSocket (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+  for (SocketList::iterator i = m_sockets.begin (); i != m_sockets.end (); ++i)
+    {
+      if ((*i) == socket)
+        {
+          m_sockets.erase (i);
+          return;
+        }
+    }
+  return;
+}
+
+Ptr<Socket> 
+Ipv4L3Protocol::CreatePiloCtlSocket (void)
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<Ipv4RawSocketImpl> socket = CreateObject<PiloSocket> ();
+  socket->SetNode (m_node);
+  m_sockets.push_back (socket);
+  return socket;
+}
+void 
+Ipv4L3Protocol::DeletePiloCtlSocket (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
   for (SocketList::iterator i = m_sockets.begin (); i != m_sockets.end (); ++i)
@@ -592,7 +617,16 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
                       Ipv4Address source,
                       Ipv4Address destination,
                       uint8_t protocol,
-                      Ptr<Ipv4Route> route)
+                      Ptr<Ipv4Route> route) {
+  SendP(packet, source, destination, protocol, route, false);
+}
+void 
+Ipv4L3Protocol::SendP (Ptr<Packet> packet, 
+                      Ipv4Address source,
+                      Ipv4Address destination,
+                      uint8_t protocol,
+                      Ptr<Ipv4Route> route,
+                      bool piloHeader)
 {
   NS_LOG_FUNCTION (this << packet << source << destination << uint32_t (protocol) << route);
 
@@ -625,7 +659,7 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
   if (destination.IsBroadcast () || destination.IsLocalMulticast ())
     {
       NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 1:  limited broadcast");
-      ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment);
+      ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment, piloHeader);
       uint32_t ifaceIndex = 0;
       for (Ipv4InterfaceList::iterator ifaceIter = m_interfaces.begin ();
            ifaceIter != m_interfaces.end (); ifaceIter++, ifaceIndex++)
@@ -657,7 +691,7 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
               destination.CombineMask (ifAddr.GetMask ()) == ifAddr.GetLocal ().CombineMask (ifAddr.GetMask ())   )
             {
               NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 2:  subnet directed bcast to " << ifAddr.GetLocal ());
-              ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment);
+              ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment, piloHeader);
               Ptr<Packet> packetCopy = packet->Copy ();
               m_sendOutgoingTrace (ipHeader, packetCopy, ifaceIndex);
               packetCopy->AddHeader (ipHeader);
@@ -673,7 +707,7 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
   if (route && route->GetGateway () != Ipv4Address ())
     {
       NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 3:  passed in with route");
-      ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment);
+      ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment, piloHeader);
       int32_t interface = GetInterfaceForDevice (route->GetOutputDevice ());
       m_sendOutgoingTrace (ipHeader, packet, interface);
       SendRealOut (route, packet->Copy (), ipHeader);
@@ -692,7 +726,7 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
   NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 5:  passed in with no route " << destination);
   Socket::SocketErrno errno_; 
   Ptr<NetDevice> oif (0); // unused for now
-  ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment);
+  ipHeader = BuildHeader (source, destination, protocol, packet->GetSize (), ttl, tos, mayFragment, piloHeader);
   Ptr<Ipv4Route> newRoute;
   if (m_routingProtocol != 0)
     {
@@ -726,7 +760,8 @@ Ipv4L3Protocol::BuildHeader (
   uint16_t payloadSize,
   uint8_t ttl,
   uint8_t tos,
-  bool mayFragment)
+  bool mayFragment,
+  bool piloHeader)
 {
   NS_LOG_FUNCTION (this << source << destination << (uint16_t)protocol << payloadSize << (uint16_t)ttl << (uint16_t)tos << mayFragment);
   Ipv4Header ipHeader;
@@ -738,11 +773,12 @@ Ipv4L3Protocol::BuildHeader (
   ipHeader.SetTos (tos);
 
   // TODO: @apanda, not sure if this is the best place to put this in, we don't really need this for non-PILO packets.
-  ipHeader.SetIdentification (m_currentId);
-  m_currentId ++;
+  if (piloHeader) {
+    ipHeader.SetIdentification (m_currentId);
+    m_currentId ++;
+  }
 
-  // TODO: @apanda, definitely remove this, just doing this to check.
-  ipHeader.SetPiloControl (true);
+  ipHeader.SetPiloControl (piloHeader);
 
   uint64_t src = source.Get ();
   uint64_t dst = destination.Get ();

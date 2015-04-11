@@ -85,7 +85,7 @@ public:
   virtual bool SetAllowBroadcast (bool allowBroadcast);
   virtual bool GetAllowBroadcast () const;
 
-private:
+protected:
   virtual void DoDispose (void);
 
   /**

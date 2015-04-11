@@ -151,7 +151,7 @@ main (int argc, char *argv[])
   // Create a UDP server to start of
   Ptr<Node> serverNode = n.Get(nodeMap["h0"]);
   uint16_t port = 4000;
-  UdpServerHelper server (port);
+  PiloCtlServerHelper server (port);
   ApplicationContainer apps = server.Install (serverNode);
   apps.Start (Seconds (1.0));
   apps.Stop (Seconds (10.0));

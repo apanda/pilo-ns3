@@ -1,5 +1,6 @@
 #include "icmpv4-l4-protocol.h"
 #include "ipv4-raw-socket-factory-impl.h"
+#include "pilo-socket-factory.h" 
 #include "ipv4-interface.h"
 #include "ipv4-l3-protocol.h"
 #include "ns3/assert.h"
@@ -67,6 +68,8 @@ Icmpv4L4Protocol::NotifyNewAggregate ()
               ipv4->Insert (this);
               Ptr<Ipv4RawSocketFactoryImpl> rawFactory = CreateObject<Ipv4RawSocketFactoryImpl> ();
               ipv4->AggregateObject (rawFactory);
+              Ptr<PiloSocketFactory> piloFactory = CreateObject<PiloSocketFactory> ();
+              ipv4->AggregateObject (piloFactory);
               this->SetDownTarget (MakeCallback (&Ipv4::Send, ipv4));
             }
         }

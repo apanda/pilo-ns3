@@ -116,6 +116,8 @@ public:
 
   Ptr<Socket> CreateRawSocket (void);
   void DeleteRawSocket (Ptr<Socket> socket);
+  virtual Ptr<Socket> CreatePiloCtlSocket (void);
+  virtual void DeletePiloCtlSocket (Ptr<Socket> socket);
 
   /**
    * \param protocol a template for the protocol to add to this L4 Demux.
@@ -181,6 +183,9 @@ public:
    */
   void Send (Ptr<Packet> packet, Ipv4Address source, 
              Ipv4Address destination, uint8_t protocol, Ptr<Ipv4Route> route);
+
+  void SendP (Ptr<Packet> packet, Ipv4Address source, 
+             Ipv4Address destination, uint8_t protocol, Ptr<Ipv4Route> route, bool piloHeader);
   /**
    * \param packet packet to send
    * \param ipHeader IP Header
@@ -287,7 +292,8 @@ private:
     uint16_t payloadSize,
     uint8_t ttl,
     uint8_t tos,
-    bool mayFragment);
+    bool mayFragment,
+    bool piloHeader);
 
   /**
    * \brief Send packet with route.

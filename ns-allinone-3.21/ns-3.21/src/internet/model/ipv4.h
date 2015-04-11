@@ -148,6 +148,9 @@ public:
   virtual void Send (Ptr<Packet> packet, Ipv4Address source,
                      Ipv4Address destination, uint8_t protocol, Ptr<Ipv4Route> route) = 0;
 
+  virtual void SendP (Ptr<Packet> packet, Ipv4Address source, 
+             Ipv4Address destination, uint8_t protocol, Ptr<Ipv4Route> route, bool piloHeader) { NS_ASSERT (false); }
+
   /**
    * \param packet packet to send
    * \param ipHeader IP Header
@@ -382,6 +385,20 @@ public:
    * \param socket Smart pointer to the raw socket to be deleted
    */
   virtual void DeleteRawSocket (Ptr<Socket> socket) = 0;
+
+  /**
+   * \brief Creates a PILO socket
+   *
+   * \returns a smart pointer to the instantiated raw socket
+   */
+  virtual Ptr<Socket> CreatePiloCtlSocket (void) { NS_ASSERT (false); };
+
+  /**
+   * \brief Deletes a particular PILO socket
+   *
+   * \param socket Smart pointer to the raw socket to be deleted
+   */
+  virtual void DeletePiloCtlSocket (Ptr<Socket> socket) { NS_ASSERT (false); };
 
 
   static const uint32_t IF_ANY = 0xffffffff; //!< interface wildcard, meaning any interface
