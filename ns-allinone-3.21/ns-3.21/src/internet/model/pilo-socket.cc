@@ -28,6 +28,7 @@ PiloSocket::GetTypeId (void)
 PiloSocket::PiloSocket () {
   // A protocol to get all the PILO goodness
   SetProtocol(PROTOCOL);
+  m_iphdrRecv = false;
 }
 
 int 
@@ -100,6 +101,5 @@ PiloSocket::SendTo (Ptr<Packet> p, uint32_t flags,
     }
   return 0;
 }
-
 
 }

@@ -60,6 +60,7 @@ Ipv4RawSocketImpl::Ipv4RawSocketImpl ()
   m_protocol = 0;
   m_shutdownSend = false;
   m_shutdownRecv = false;
+  m_iphdrRecv = true;
 }
 
 void 
@@ -351,7 +352,11 @@ Ipv4RawSocketImpl::ForwardUp (Ptr<const Packet> p, Ipv4Header ipHeader, Ptr<Ipv4
               return false;
             }
         }
-      copy->AddHeader (ipHeader);
+      // @apanda: Don't want this for PILO.
+      if (m_iphdrRecv)
+        {
+          copy->AddHeader (ipHeader);
+        }
       struct Data data;
       data.packet = copy;
       data.fromIp = ipHeader.GetSource ();

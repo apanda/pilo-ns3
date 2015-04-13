@@ -30,6 +30,7 @@
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
 #include "ns3/pilo-socket-factory.h"
+#include "ns3/ipv4-header.h"
 #include "packet-loss-counter.h"
 
 #include "seq-ts-header.h"
@@ -148,6 +149,7 @@ PiloCtlServer::HandleRead (Ptr<Socket> socket)
         {
           SeqTsHeader seqTs;
           packet->RemoveHeader (seqTs);
+          NS_LOG_INFO("Seq TS " << seqTs.GetSeq() << " "  << seqTs.GetTs());
           uint32_t currentSequenceNumber = seqTs.GetSeq ();
           if (InetSocketAddress::IsMatchingType (from))
             {

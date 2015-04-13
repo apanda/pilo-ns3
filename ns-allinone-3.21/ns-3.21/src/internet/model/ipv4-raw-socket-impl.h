@@ -108,6 +108,7 @@ protected:
   bool m_shutdownRecv;              //!< Flag to shutdown receive capability.
   uint32_t m_icmpFilter;            //!< ICMPv4 filter specification
   bool m_iphdrincl;                 //!< Include IP Header information (a.k.a setsockopt (IP_HDRINCL))
+  bool m_iphdrRecv;                 //!< Include IP header in recv
 };
 
 } // namespace ns3
