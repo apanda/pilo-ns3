@@ -132,9 +132,11 @@ public:
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
 protected:
+  void HandleRead (Ptr<Socket> socket);
   Ptr<Ipv4> m_ipv4; // IPv4 instance for this router
   RoutingTable m_table;
   Ptr<Socket> m_socket; //!< IPv4 Socket
+  static const uint16_t PORT = 6500;
 };
 
 }

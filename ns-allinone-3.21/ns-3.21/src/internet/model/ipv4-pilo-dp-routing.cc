@@ -124,15 +124,29 @@ void
 Ipv4PiloDPRouting::SetIpv4(Ptr<Ipv4> ipv4) {
   m_ipv4 = ipv4;
   TypeId tid = TypeId::LookupByName ("ns3::PiloSocketFactory");
+  if (m_socket != 0) {
+    m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+  }
   m_socket = Socket::CreateSocket (m_ipv4->GetObject<Node> (), tid);
   InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (),
-                                             6500);
+                                             PORT);
   m_socket->Bind (local);
+  m_socket->SetRecvCallback(MakeCallback(&Ipv4PiloDPRouting::HandleRead, this));
 }
 
 void 
 Ipv4PiloDPRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const {
   *(stream->GetStream()) << "PILO CTL packets flooded " << std::endl;
+}
+
+void 
+Ipv4PiloDPRouting::HandleRead (Ptr<Socket> socket) {
+  NS_LOG_FUNCTION (this << socket);
+  Ptr<Packet> packet;
+  Address from;
+  while ((packet = socket->RecvFrom (from))) {
+    NS_LOG_LOGIC("HandleRead packet " << packet->GetSize());
+  }
 }
 
 } // namespace ns3
