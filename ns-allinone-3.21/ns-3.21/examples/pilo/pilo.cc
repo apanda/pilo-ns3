@@ -118,11 +118,11 @@ main (int argc, char *argv[])
   // other strategies later. For example, we would really want a PILO control router at high priority and
   // a data plane router at higher priority.
   Ipv4PiloCtlRoutingHelper ctlRouting;
-  Ipv4StaticRoutingHelper staticRouting;
+  Ipv4PiloDPRoutingHelper dpRouting;
   Ipv4ListRoutingHelper listRouting;
   // We want ctlRouting to have the highest priority
   listRouting.Add (ctlRouting, 100);
-  listRouting.Add (staticRouting, 0);
+  listRouting.Add (dpRouting, 0);
   internet.SetRoutingHelper (listRouting);
   internet.Install (n);
 

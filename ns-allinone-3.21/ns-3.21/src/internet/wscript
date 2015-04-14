@@ -181,6 +181,7 @@ def build(bld):
         'model/ipv6-list-routing.cc',
         'helper/ipv4-list-routing-helper.cc',
         'helper/ipv4-pilo-ctl-routing-helper.cc',
+        'helper/ipv4-pilo-dp-routing-helper.cc',
         'helper/ipv6-list-routing-helper.cc',
         'model/ipv4-static-routing.cc',
         'model/ipv4-routing-table-entry.cc',
@@ -211,6 +212,7 @@ def build(bld):
         'model/ripng-header.cc',
         'helper/ripng-helper.cc',
         'model/ipv4-pilo-ctl-routing.cc',
+        'model/ipv4-pilo-dp-routing.cc',
         ]
 
     internet_test = bld.create_ns3_module_test_library('internet')
@@ -302,6 +304,7 @@ def build(bld):
         'model/ipv6-list-routing.h',
         'helper/ipv4-list-routing-helper.h',
         'helper/ipv4-pilo-ctl-routing-helper.h',
+        'helper/ipv4-pilo-dp-routing-helper.h',
         'helper/ipv6-list-routing-helper.h',
         'model/ipv4-static-routing.h',
         'model/ipv4-routing-table-entry.h',
@@ -341,6 +344,7 @@ def build(bld):
         'model/ripng-header.h',
         'helper/ripng-helper.h',
         'model/ipv4-pilo-ctl-routing.h',
+        'model/ipv4-pilo-dp-routing.h',
        ]
 
     if bld.env['NSC_ENABLED']:
