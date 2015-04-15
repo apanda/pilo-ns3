@@ -7,6 +7,7 @@
 #include "ns3/names.h"
 #include "ns3/packet.h"
 #include "ns3/node.h"
+#include "ns3/channel.h"
 #include "ns3/simulator.h"
 #include "ns3/ipv4-route.h"
 #include "ns3/output-stream-wrapper.h"
@@ -39,14 +40,14 @@ Ipv4PiloDPRouting::RouteOutput (Ptr<Packet> p,
   Ptr<Ipv4Route> rtentry = 0;
   Ipv4Address dest = header.GetDestination ();
   Ptr<NetDevice> iface = 0;
-  if (m_table.find(dest) != m_table.end() &&
-      m_table[dest] < m_ipv4->GetNInterfaces()) {
+  if (m_routingTable.find(dest) != m_routingTable.end() &&
+      m_routingTable[dest] < m_ipv4->GetNInterfaces()) {
     rtentry = Create<Ipv4Route> ();
     rtentry->SetDestination (dest);
     rtentry->SetGateway (Ipv4Address::GetZero ());
-    iface = m_ipv4->GetNetDevice (m_table[dest]);
+    iface = m_ipv4->GetNetDevice (m_routingTable[dest]);
     rtentry->SetOutputDevice (iface);
-    rtentry->SetSource (m_ipv4->GetAddress (m_table[dest], 0).GetLocal ());
+    rtentry->SetSource (m_ipv4->GetAddress (m_routingTable[dest], 0).GetLocal ());
   }
   return rtentry;
 }
@@ -85,15 +86,15 @@ Ipv4PiloDPRouting::RouteInput(Ptr<const Packet> p,
 
   // Check if we have a routing entry
   Ipv4Address dest = header.GetDestination();
-  if (m_table.find(dest) != m_table.end() && 
-      m_table[dest] < m_ipv4->GetNInterfaces()) {
-    NS_LOG_LOGIC ("Forwarding packet out interface " << m_table[dest]); 
+  if (m_routingTable.find(dest) != m_routingTable.end() && 
+      m_routingTable[dest] < m_ipv4->GetNInterfaces()) {
+    NS_LOG_LOGIC ("Forwarding packet out interface " << m_routingTable[dest]); 
     Ptr<Ipv4Route> rtentry = 0;
     rtentry = Create<Ipv4Route> ();
     rtentry->SetDestination (header.GetDestination());
     rtentry->SetGateway (Ipv4Address::GetZero ());
-    rtentry->SetOutputDevice (m_ipv4->GetNetDevice(m_table[dest]));
-    rtentry->SetSource (m_ipv4->GetAddress (m_table[dest], 0).GetLocal ());
+    rtentry->SetOutputDevice (m_ipv4->GetNetDevice(m_routingTable[dest]));
+    rtentry->SetSource (m_ipv4->GetAddress (m_routingTable[dest], 0).GetLocal ());
     ucb(rtentry, p, header);
     return true;
   }
@@ -102,22 +103,46 @@ Ipv4PiloDPRouting::RouteInput(Ptr<const Packet> p,
 
 void
 Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
-  // Routing here just involves flooding, we don't need this.
+  // Record what is on the other side. This involves cheating, cheating is bad.
+  Ptr<NetDevice> dev = m_ipv4->GetNetDevice(iface);
+  if (dev->IsPointToPoint()) {
+    Ptr<Channel> chan = dev->GetChannel();
+    if (!chan) {
+      NS_LOG_LOGIC ("No channel found for " << iface);
+    } else {
+      NS_ASSERT (chan->GetNDevices() == 2);
+      if (chan->GetDevice(0)->GetNode() == m_ipv4->GetObject<Node>()) {
+        m_ifaceToNode[iface] = chan->GetDevice(1)->GetNode()->GetId();
+      } else {
+        NS_ASSERT(chan->GetDevice(1)->GetNode() == m_ipv4->GetObject<Node>());
+        m_ifaceToNode[iface] = chan->GetDevice(0)->GetNode()->GetId();
+      }
+      NS_LOG_LOGIC ("Adding mapping iface " << iface << " leads to " << m_ifaceToNode[iface]);
+    }
+  } else {
+    NS_LOG_LOGIC ("Ignoring non-point-to-point device " << iface);
+  }
 }
 
 void
 Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
-  // Routing here just involves flooding, we don't need this.
+  // Need to regenerate the m_ifaceToNode table, since ifaces change
+  m_ifaceToNode.clear();
+  for (int i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+    // Add a new entry
+    NotifyInterfaceUp(i);
+  }
 }
 
 void
 Ipv4PiloDPRouting::NotifyAddAddress(uint32_t iface, Ipv4InterfaceAddress address) {
-  // Don't need
+  // Do we need this? What is the use of keeping track of addresses for a node.
+  m_addressIface[address.GetLocal()] = iface;
 }
 
 void
 Ipv4PiloDPRouting::NotifyRemoveAddress(uint32_t iface, Ipv4InterfaceAddress address) {
-  // Don't need
+  m_addressIface.erase(address.GetLocal());
 }
 
 void
@@ -136,16 +161,50 @@ Ipv4PiloDPRouting::SetIpv4(Ptr<Ipv4> ipv4) {
 
 void 
 Ipv4PiloDPRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const {
-  *(stream->GetStream()) << "PILO CTL packets flooded " << std::endl;
+  std::ostream* os = stream->GetStream ();
+  *os << "Address    Interface" << std::endl;
+  for (RoutingTable::const_iterator it = m_routingTable.cbegin();
+                                it != m_routingTable.cend(); it++) {
+    *os << it->first << "  " << it->second << std::endl;
+  }
 }
 
+void 
+Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt) {
+  NS_LOG_FUNCTION (this << hdr << pkt);
+  switch(hdr.GetType()) {
+    case NOP:
+      NS_LOG_LOGIC ("Received NOP");
+      break;
+    case Echo:
+      char buf[1024];
+      pkt->CopyData((uint8_t*)buf, 1024);
+      NS_LOG_LOGIC ("Received echo " << buf);
+      break;
+  };
+}
+
+// Called when a PILO control packet is received over the control connection.
 void 
 Ipv4PiloDPRouting::HandleRead (Ptr<Socket> socket) {
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
   Address from;
+  PiloHeader piloHeader;
   while ((packet = socket->RecvFrom (from))) {
     NS_LOG_LOGIC("HandleRead packet " << packet->GetSize());
+    if (packet->GetSize() > 0) {
+      packet->RemoveHeader(piloHeader);
+      NS_LOG_LOGIC("Processing actual PILO packet " << piloHeader);
+      if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES ||
+          piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
+        HandlePiloControlPacket(piloHeader, packet);
+      } else {
+        NS_LOG_LOGIC ("Ignoring PILO packet not intended for me.");
+      }
+    } else {
+      NS_LOG_LOGIC("Zero-size control packet");
+    }
   }
 }
 

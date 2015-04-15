@@ -213,6 +213,7 @@ def build(bld):
         'helper/ripng-helper.cc',
         'model/ipv4-pilo-ctl-routing.cc',
         'model/ipv4-pilo-dp-routing.cc',
+        'model/pilo-header.cc',
         ]
 
     internet_test = bld.create_ns3_module_test_library('internet')
@@ -345,6 +346,7 @@ def build(bld):
         'helper/ripng-helper.h',
         'model/ipv4-pilo-ctl-routing.h',
         'model/ipv4-pilo-dp-routing.h',
+        'model/pilo-header.h',
        ]
 
     if bld.env['NSC_ENABLED']:

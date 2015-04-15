@@ -31,6 +31,7 @@
 #include "ns3/uinteger.h"
 #include "ns3/pilo-socket-factory.h"
 #include "ns3/ipv4-header.h"
+#include "ns3/pilo-header.h"
 #include "packet-loss-counter.h"
 
 #include "seq-ts-header.h"
@@ -147,31 +148,22 @@ PiloCtlServer::HandleRead (Ptr<Socket> socket)
     {
       if (packet->GetSize () > 0)
         {
-          SeqTsHeader seqTs;
-          packet->RemoveHeader (seqTs);
-          NS_LOG_INFO("Seq TS " << seqTs.GetSeq() << " "  << seqTs.GetTs());
-          uint32_t currentSequenceNumber = seqTs.GetSeq ();
+          PiloHeader piloHdr;
+          //SeqTsHeader seqTs;
+          packet->RemoveHeader (piloHdr);
+          //packet->RemoveHeader (seqTs);
+          //NS_LOG_INFO("Seq TS " << seqTs.GetSeq() << " "  << seqTs.GetTs());
+          //uint32_t currentSequenceNumber = seqTs.GetSeq ();
           if (InetSocketAddress::IsMatchingType (from))
             {
               NS_LOG_INFO ("TraceDelay: RX " << packet->GetSize () <<
                            " bytes from "<< InetSocketAddress::ConvertFrom (from).GetIpv4 () <<
-                           " Sequence Number: " << currentSequenceNumber <<
+                           //" Sequence Number: " << currentSequenceNumber <<
                            " Uid: " << packet->GetUid () <<
-                           " TXtime: " << seqTs.GetTs () <<
-                           " RXtime: " << Simulator::Now () <<
-                           " Delay: " << Simulator::Now () - seqTs.GetTs ());
+                           //" TXtime: " << seqTs.GetTs () <<
+                           " RXtime: " << Simulator::Now ());// <<
+                           //" Delay: " << Simulator::Now () - seqTs.GetTs ());
             }
-          else if (Inet6SocketAddress::IsMatchingType (from))
-            {
-              NS_LOG_INFO ("TraceDelay: RX " << packet->GetSize () <<
-                           " bytes from "<< Inet6SocketAddress::ConvertFrom (from).GetIpv6 () <<
-                           " Sequence Number: " << currentSequenceNumber <<
-                           " Uid: " << packet->GetUid () <<
-                           " TXtime: " << seqTs.GetTs () <<
-                           " RXtime: " << Simulator::Now () <<
-                           " Delay: " << Simulator::Now () - seqTs.GetTs ());
-            }
-
           m_received++;
         }
     }

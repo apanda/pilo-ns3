@@ -30,6 +30,7 @@
 #include "ns3/uinteger.h"
 #include "pilo-ctl-client.h"
 #include "seq-ts-header.h"
+#include "ns3/pilo-header.h"
 #include <cstdlib>
 #include <cstdio>
 
@@ -152,10 +153,12 @@ PiloCtlClient::Send (void)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_sendEvent.IsExpired ());
-  SeqTsHeader seqTs;
-  seqTs.SetSeq (m_sent);
-  Ptr<Packet> p = Create<Packet> (m_size-(8+4)); // 8+4 : the size of the seqTs header
-  p->AddHeader (seqTs);
+  PiloHeader hdr(GetNode()->GetId(), PiloHeader::ALL_NODES, Echo); 
+  //SeqTsHeader seqTs;
+  //seqTs.SetSeq (m_sent);
+  Ptr<Packet> p = Create<Packet> ((uint8_t*)"Hello", 6);
+  //p->AddHeader (seqTs);
+  p->AddHeader(hdr);
 
   std::stringstream peerAddressStringStream;
   if (Ipv4Address::IsMatchingType (m_peerAddress))
@@ -174,7 +177,8 @@ PiloCtlClient::Send (void)
                                     << peerAddressStringStream.str () << " Uid: "
                                     << p->GetUid () << " Time: "
                                     << (Simulator::Now ()).GetSeconds () << " Seq: "
-                                    << seqTs.GetSeq());
+                                    //<< seqTs.GetSeq() << " "
+                                    << hdr);
 
     }
   else

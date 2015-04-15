@@ -15,6 +15,7 @@
 #include "ns3/ipv4.h"
 #include "ns3/ipv4-routing-protocol.h"
 #include "ns3/pilo-socket-factory.h"
+#include "ns3/pilo-header.h"
 
 namespace ns3 {
 class Packet;
@@ -30,6 +31,10 @@ class Ipv4PiloDPRouting : public Ipv4RoutingProtocol
 {
   typedef std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash> 
             RoutingTable;
+  typedef std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash> 
+            AddressToIface;
+  typedef std::unordered_map<uint32_t, uint32_t> 
+            IfaceToNode;
 public:
   Ipv4PiloDPRouting ();
 
@@ -132,10 +137,13 @@ public:
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
 protected:
+  void HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt);
   void HandleRead (Ptr<Socket> socket);
   Ptr<Ipv4> m_ipv4; // IPv4 instance for this router
-  RoutingTable m_table;
-  Ptr<Socket> m_socket; //!< IPv4 Socket
+  RoutingTable m_routingTable;
+  AddressToIface m_addressIface;
+  IfaceToNode m_ifaceToNode;
+  Ptr<Socket> m_socket; //!< PILO socket
   static const uint16_t PORT = 6500;
 };
 
