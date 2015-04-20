@@ -27,6 +27,7 @@
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/address.h"
+#include "ns3/pilo-socket.h"
 #include "packet-loss-counter.h"
 namespace ns3 {
 /**
@@ -96,7 +97,7 @@ private:
   void HandleRead (Ptr<Socket> socket);
 
   uint16_t m_port; //!< Port on which we listen for incoming packets.
-  Ptr<Socket> m_socket; //!< IPv4 Socket
+  Ptr<PiloSocket> m_socket; //!< IPv4 Socket
   uint32_t m_received; //!< Number of received packets
 };
 

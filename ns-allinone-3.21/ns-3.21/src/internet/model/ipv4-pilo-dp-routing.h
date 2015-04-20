@@ -15,6 +15,7 @@
 #include "ns3/ipv4.h"
 #include "ns3/ipv4-routing-protocol.h"
 #include "ns3/pilo-socket-factory.h"
+#include "ns3/pilo-socket.h"
 #include "ns3/pilo-header.h"
 
 namespace ns3 {
@@ -143,7 +144,7 @@ protected:
   RoutingTable m_routingTable;
   AddressToIface m_addressIface;
   IfaceToNode m_ifaceToNode;
-  Ptr<Socket> m_socket; //!< PILO socket
+  Ptr<PiloSocket> m_socket; //!< PILO socket
   static const uint16_t PORT = 6500;
 };
 

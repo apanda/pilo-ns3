@@ -10,6 +10,7 @@
 #include "ns3/simulator.h"
 #include "ns3/ipv4-route.h"
 #include "ns3/output-stream-wrapper.h"
+#include "ns3/pilo-header.h"
 
 NS_LOG_COMPONENT_DEFINE ("Ipv4PiloCtlRouting");
 namespace ns3 {
@@ -78,21 +79,36 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
     return false; // If not a PILO control packet then we don't care about forwarding.
   }
 
-  if (m_filter.find(header.GetSource()) != m_filter.end() &&
-      m_filter[header.GetSource()].find(header.GetIdentification())  != 
-         m_filter[header.GetSource()].end()) {
+  PiloHeader piloHeader; // We always expect a PILO header
+  p->PeekHeader (piloHeader);
+
+  NS_LOG_LOGIC("Handling packet with header " << piloHeader);
+
+  if (m_filter.find(piloHeader.GetSourceNode()) != m_filter.end() &&
+      m_filter[piloHeader.GetSourceNode()].find(header.GetIdentification())  != 
+         m_filter[piloHeader.GetSourceNode()].end()) {
     NS_LOG_LOGIC ("Not forwarding packet, is duplicate");
     return true; // We have already forwarded this packet. Not only should we not forward it, we need to make sure that
                  // list routing or other things don't pass it to the next node.
   }
 
-  m_filter[header.GetSource()].insert(header.GetIdentification());
+  m_filter[piloHeader.GetSourceNode()].insert(header.GetIdentification());
   // When flooding don't send out received port
   uint32_t iifIdx = m_ipv4->GetInterfaceForDevice(idev);
 
-  NS_LOG_LOGIC ("Locally delivering packet");
-  // Always locally deliver
-  lcb(p, header, iifIdx);
+
+  // Locally deliver if necessary
+  if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES) {
+    NS_LOG_LOGIC ("Locally delivering packet");
+    lcb(p, header, iifIdx);
+  }
+
+  if (piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
+    NS_LOG_LOGIC ("Locally delivering packet");
+    lcb(p, header, iifIdx);
+    NS_LOG_LOGIC ("Not forwarding anymore, since delivered");
+    return true;
+  }
   
   // Flood out all interfaces (except for loopback).
   for (uint32_t i = 1; i < m_ipv4->GetNInterfaces(); i++) {

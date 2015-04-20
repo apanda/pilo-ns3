@@ -5,6 +5,7 @@
 #ifndef PILO_SOCKET_H
 #define PILO_SOCKET_H
 #include "ipv4-raw-socket-impl.h"
+#include "pilo-header.h"
 namespace ns3 {
 class PiloSocket : public Ipv4RawSocketImpl {
 public:
@@ -14,6 +15,9 @@ public:
    */
   static TypeId GetTypeId (void);
   PiloSocket ();
+  int SendPiloMessage (uint32_t target,
+            PiloMessageType type,
+            Ptr<Packet> packet);
   virtual int SendTo (Ptr<Packet> p, uint32_t flags, 
                       const Address &toAddress);
 protected:

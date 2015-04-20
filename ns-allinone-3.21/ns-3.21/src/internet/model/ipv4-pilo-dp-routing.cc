@@ -152,7 +152,7 @@ Ipv4PiloDPRouting::SetIpv4(Ptr<Ipv4> ipv4) {
   if (m_socket != 0) {
     m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
   }
-  m_socket = Socket::CreateSocket (m_ipv4->GetObject<Node> (), tid);
+  m_socket = DynamicCast<PiloSocket>(Socket::CreateSocket(m_ipv4->GetObject<Node> (), tid));
   InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (),
                                              PORT);
   m_socket->Bind (local);
@@ -180,6 +180,16 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       char buf[1024];
       pkt->CopyData((uint8_t*)buf, 1024);
       NS_LOG_LOGIC ("Received echo " << buf);
+      // Send echo back
+      if (m_socket->SendPiloMessage(hdr.GetSourceNode(), EchoAck, pkt) < 0) {
+        NS_LOG_LOGIC("Error responding to echo");
+      } else {
+        NS_LOG_LOGIC("Sent an echo ack");
+      }
+      break;
+    case EchoAck:
+      NS_LOG_LOGIC("Received EchoAck ");
+      // Ignore EchoAcks
       break;
   };
 }

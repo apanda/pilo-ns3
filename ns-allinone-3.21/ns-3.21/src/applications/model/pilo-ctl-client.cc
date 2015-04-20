@@ -20,6 +20,7 @@
  */
 #include "ns3/log.h"
 #include "ns3/ipv4-address.h"
+#include "ns3/ipv4.h"
 #include "ns3/nstime.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/inet6-socket-address.h"
@@ -68,6 +69,11 @@ PiloCtlClient::GetTypeId (void)
                    UintegerValue (1024),
                    MakeUintegerAccessor (&PiloCtlClient::m_size),
                    MakeUintegerChecker<uint32_t> (12,1500))
+    .AddAttribute ("NodeSend",
+                   "What node to send PILO packets",
+                   UintegerValue (PiloHeader::ALL_NODES),
+                   MakeUintegerAccessor (&PiloCtlClient::m_targetNode),
+                   MakeUintegerChecker<uint32_t> ())
   ;
   return tid;
 }
@@ -124,7 +130,7 @@ PiloCtlClient::StartApplication (void)
   if (m_socket == 0)
     {
       TypeId tid = TypeId::LookupByName ("ns3::PiloSocketFactory");
-      m_socket = Socket::CreateSocket (GetNode (), tid);
+      m_socket = DynamicCast<PiloSocket>(Socket::CreateSocket (GetNode (), tid));
       if (Ipv4Address::IsMatchingType(m_peerAddress) == true)
         {
           m_socket->Bind ();
@@ -137,7 +143,7 @@ PiloCtlClient::StartApplication (void)
         }
     }
 
-  m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+  m_socket->SetRecvCallback (MakeCallback(&PiloCtlClient::HandleRead, this));
   m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloCtlClient::Send, this);
 }
 
@@ -153,32 +159,22 @@ PiloCtlClient::Send (void)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_sendEvent.IsExpired ());
-  PiloHeader hdr(GetNode()->GetId(), PiloHeader::ALL_NODES, Echo); 
-  //SeqTsHeader seqTs;
-  //seqTs.SetSeq (m_sent);
+  //PiloHeader hdr(GetNode()->GetId(), m_targetNode, Echo); 
   Ptr<Packet> p = Create<Packet> ((uint8_t*)"Hello", 6);
-  //p->AddHeader (seqTs);
-  p->AddHeader(hdr);
+  //p->AddHeader(hdr);
 
   std::stringstream peerAddressStringStream;
-  if (Ipv4Address::IsMatchingType (m_peerAddress))
-    {
-      peerAddressStringStream << Ipv4Address::ConvertFrom (m_peerAddress);
-    }
-  else if (Ipv6Address::IsMatchingType (m_peerAddress))
-    {
-      peerAddressStringStream << Ipv6Address::ConvertFrom (m_peerAddress);
-    }
+  peerAddressStringStream << Ipv4Address::ConvertFrom (m_peerAddress);
 
-  if ((m_socket->Send (p)) >= 0)
+  if ((m_socket->SendPiloMessage(m_targetNode, Echo, p)) >= 0)
     {
       ++m_sent;
       NS_LOG_INFO ("TraceDelay TX " << m_size << " bytes to "
                                     << peerAddressStringStream.str () << " Uid: "
                                     << p->GetUid () << " Time: "
-                                    << (Simulator::Now ()).GetSeconds () << " Seq: "
+                                    << (Simulator::Now ()).GetSeconds () << " Seq: ");
                                     //<< seqTs.GetSeq() << " "
-                                    << hdr);
+                                    //<< hdr);
 
     }
   else
@@ -193,4 +189,25 @@ PiloCtlClient::Send (void)
     }
 }
 
+
+void
+PiloCtlClient::HandleRead (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+  Ptr<Packet> packet;
+  Address from;
+  while ((packet = socket->RecvFrom (from)))
+    {
+      if (packet->GetSize () > 0)
+        {
+          PiloHeader piloHdr;
+          packet->RemoveHeader (piloHdr);
+          if (piloHdr.GetType() == EchoAck) {
+            NS_LOG_LOGIC("Received EchoAck from " << piloHdr.GetSourceNode());
+            NS_ASSERT(piloHdr.GetTargetNode() == GetNode()->GetId());
+          }
+          
+        }
+    }
+}
 } // Namespace ns3

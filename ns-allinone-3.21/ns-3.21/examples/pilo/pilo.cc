@@ -161,14 +161,15 @@ main (int argc, char *argv[])
   Ptr<Node> clientNode = n.Get(nodeMap["h1"]);
   uint32_t MaxPacketSize = 1024;
   Time interPacketInterval = Seconds (0.05);
-  uint32_t maxPacketCount = 320;
+  uint32_t maxPacketCount = 1;
   PiloCtlClientHelper client (serverAddress, port);
   client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client.SetAttribute ("Interval", TimeValue (interPacketInterval));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  client.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
   apps = client.Install (clientNode);
   apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (10.0));
+  apps.Stop (Seconds (700.0));
 
 
 #if 0

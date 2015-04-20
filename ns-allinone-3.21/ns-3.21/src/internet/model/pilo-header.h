@@ -9,7 +9,8 @@
 namespace ns3 {
 enum PiloMessageType {
   NOP = 0,
-  Echo = 1
+  Echo = 1,
+  EchoAck = 2
 };
 
 // PILO message header. Essentially just says what the type is etc. 

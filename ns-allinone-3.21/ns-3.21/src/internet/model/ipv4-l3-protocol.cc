@@ -164,7 +164,7 @@ Ptr<Socket>
 Ipv4L3Protocol::CreatePiloCtlSocket (void)
 {
   NS_LOG_FUNCTION (this);
-  Ptr<Ipv4RawSocketImpl> socket = CreateObject<PiloSocket> ();
+  Ptr<PiloSocket> socket = CreateObject<PiloSocket> ();
   socket->SetNode (m_node);
   m_sockets.push_back (socket);
   return socket;

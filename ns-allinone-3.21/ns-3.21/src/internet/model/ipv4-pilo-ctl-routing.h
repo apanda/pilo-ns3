@@ -29,7 +29,7 @@ class Node;
 
 class Ipv4PiloCtlRouting : public Ipv4RoutingProtocol
 {
-  typedef std::unordered_map<Ipv4Address, std::unordered_set<uint16_t>, Ipv4AddressHash> 
+  typedef std::unordered_map<uint32_t, std::unordered_set<uint16_t> > 
             previous_packets;
 public:
   Ipv4PiloCtlRouting ();

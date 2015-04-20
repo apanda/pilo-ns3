@@ -27,6 +27,7 @@
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/ipv4-address.h"
+#include "ns3/pilo-socket.h"
 
 namespace ns3 {
 
@@ -79,7 +80,7 @@ private:
 
   virtual void StartApplication (void);
   virtual void StopApplication (void);
-
+  void HandleRead (Ptr<Socket> socket);
   /**
    * \brief Send a packet
    */
@@ -88,9 +89,10 @@ private:
   uint32_t m_count; //!< Maximum number of packets the application will send
   Time m_interval; //!< Packet inter-send time
   uint32_t m_size; //!< Size of the sent packet (including the SeqTsHeader)
+  uint32_t m_targetNode; //!< Node to send to
 
   uint32_t m_sent; //!< Counter for sent packets
-  Ptr<Socket> m_socket; //!< Socket
+  Ptr<PiloSocket> m_socket; //!< Socket
   Address m_peerAddress; //!< Remote peer address
   uint16_t m_peerPort; //!< Remote peer port
   EventId m_sendEvent; //!< Event to send the next packet

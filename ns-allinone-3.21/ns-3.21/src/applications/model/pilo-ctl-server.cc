@@ -117,7 +117,7 @@ PiloCtlServer::StartApplication (void)
   if (m_socket == 0)
     {
       TypeId tid = TypeId::LookupByName ("ns3::PiloSocketFactory");
-      m_socket = Socket::CreateSocket (GetNode (), tid);
+      m_socket = DynamicCast<PiloSocket>(Socket::CreateSocket (GetNode (), tid));
       InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (),
                                                    m_port);
       m_socket->Bind (local);
@@ -149,11 +149,7 @@ PiloCtlServer::HandleRead (Ptr<Socket> socket)
       if (packet->GetSize () > 0)
         {
           PiloHeader piloHdr;
-          //SeqTsHeader seqTs;
           packet->RemoveHeader (piloHdr);
-          //packet->RemoveHeader (seqTs);
-          //NS_LOG_INFO("Seq TS " << seqTs.GetSeq() << " "  << seqTs.GetTs());
-          //uint32_t currentSequenceNumber = seqTs.GetSeq ();
           if (InetSocketAddress::IsMatchingType (from))
             {
               NS_LOG_INFO ("TraceDelay: RX " << packet->GetSize () <<
