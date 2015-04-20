@@ -98,17 +98,19 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
 
 
   // Locally deliver if necessary
-  if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES) {
-    NS_LOG_LOGIC ("Locally delivering packet");
-    lcb(p, header, iifIdx);
-  }
+  // Local delivery is unnecessary, PiloSocket is raw and in promiscuous mode, so it
+  // delivers everything
+  //if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES) {
+    //NS_LOG_LOGIC ("Locally delivering packet");
+    //lcb(p, header, iifIdx);
+  //}
 
-  if (piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
-    NS_LOG_LOGIC ("Locally delivering packet");
-    lcb(p, header, iifIdx);
-    NS_LOG_LOGIC ("Not forwarding anymore, since delivered");
-    return true;
-  }
+  //if (piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
+    //NS_LOG_LOGIC ("Locally delivering packet");
+    //lcb(p, header, iifIdx);
+    //NS_LOG_LOGIC ("Not forwarding anymore, since delivered");
+    //return true;
+  //}
   
   // Flood out all interfaces (except for loopback).
   for (uint32_t i = 1; i < m_ipv4->GetNInterfaces(); i++) {

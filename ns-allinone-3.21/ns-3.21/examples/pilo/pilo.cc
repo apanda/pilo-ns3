@@ -147,6 +147,9 @@ main (int argc, char *argv[])
   }
 
   std::cout << "Found " << links.size() << " links " << std::endl; 
+  std::cout << "server at  " << nodeMap["h0"] 
+            << " client at " << nodeMap["h1"] 
+            << " receiving at " << nodeMap["s1"] << std::endl; 
 
   // Create a UDP server to start of
   Ptr<Node> serverNode = n.Get(nodeMap["h0"]);
@@ -166,6 +169,7 @@ main (int argc, char *argv[])
   client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   client.SetAttribute ("Interval", TimeValue (interPacketInterval));
   client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  //client.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
   client.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
   apps = client.Install (clientNode);
   apps.Start (Seconds (2.0));

@@ -134,7 +134,7 @@ PiloCtlClient::StartApplication (void)
       if (Ipv4Address::IsMatchingType(m_peerAddress) == true)
         {
           m_socket->Bind ();
-          m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
+          //m_socket->Connect (InetSocketAddress (Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
         }
       else if (Ipv6Address::IsMatchingType(m_peerAddress) == true)
         {
@@ -205,6 +205,9 @@ PiloCtlClient::HandleRead (Ptr<Socket> socket)
           if (piloHdr.GetType() == EchoAck) {
             NS_LOG_LOGIC("Received EchoAck from " << piloHdr.GetSourceNode());
             NS_ASSERT(piloHdr.GetTargetNode() == GetNode()->GetId());
+          } else {
+            NS_LOG_LOGIC("Received some other type " << piloHdr.GetType() <<
+                         " from " << piloHdr.GetSourceNode());
           }
           
         }
