@@ -499,10 +499,6 @@ def configure(conf):
                                  conf.env['ENABLE_GSL'],
                                  "GSL not found")
 
-    yaml_cflags = conf.check_cfg(package='yaml-cpp', args=['--cflags'],
-                               uselib_store='YAML', mandatory=True)
-    yaml_ldflags = conf.check_cfg(package='yaml-cpp', args=['--libs'],
-                               uselib_store='YAML', mandatory=True)
 
     #
     # for compiling C code, copy over the CXX* flags
@@ -519,11 +515,10 @@ def configure(conf):
     add_gcc_flag('-Wno-error=deprecated-declarations')
     add_gcc_flag('-fstrict-aliasing')
     add_gcc_flag('-Wstrict-aliasing')
-    for fl in shlex.split(yaml_cflags):
-      add_gcc_flag(fl)
+    add_gcc_flag('-std=c++11')
 
-    for fl in shlex.split(yaml_ldflags):
-      conf.env.append_value('LINKFLAGS', fl)
+    conf.recurse('examples/pilo')
+
 
     try:
         conf.find_program('doxygen', var='DOXYGEN')

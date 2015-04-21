@@ -1,6 +1,22 @@
 ## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+import shlex
 
 def build(bld):
     print "Someone called build on PILO"
     obj = bld.create_ns3_program('pilo-base', ['csma', 'internet', 'applications', 'point-to-point'])
     obj.source = 'pilo.cc'
+    if bld.env['YAML']:
+      obj.use.append('YAML')
+
+def configure(conf):
+    print "Configuring PILO"
+    have_yaml = conf.check_cfg(package='yaml-cpp', args=['--cflags', '--libs'],
+                               uselib_store='YAML', mandatory=True)
+    conf.env['YAML'] = have_yaml
+    #def add_gcc_flag(flag):
+        #conf.env.append_value('CXXFLAGS', flag)
+        #conf.env.append_value('CCFLAGS', flag)
+    #for fl in shlex.split(yaml_cflags):
+      #add_gcc_flag(fl)
+    #for fl in shlex.split(yaml_ldflags):
+      #conf.env.append_value('LINKFLAGS', fl)
