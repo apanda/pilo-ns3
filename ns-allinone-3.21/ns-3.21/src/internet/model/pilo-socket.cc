@@ -91,6 +91,7 @@ PiloSocket::SendPiloMessage(uint32_t target, PiloMessageType type, Ptr<Packet> p
 
 bool 
 PiloSocket::DeliverPacket (const Ipv4Header& ipHeader) {
+  NS_LOG_FUNCTION (this << ipHeader);
   return ipHeader.IsPiloControl();
 }
 
