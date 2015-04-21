@@ -309,6 +309,14 @@ Ipv4RawSocketImpl::SetProtocol (uint16_t protocol)
 }
 
 bool 
+Ipv4RawSocketImpl::DeliverPacket (const Ipv4Header& ipHeader)
+{
+  return ((m_src == Ipv4Address::GetAny () || ipHeader.GetDestination () == m_src) &&
+          (m_dst == Ipv4Address::GetAny () || ipHeader.GetSource () == m_dst) &&
+           ipHeader.GetProtocol () == m_protocol);
+ 
+}
+bool 
 Ipv4RawSocketImpl::ForwardUp (Ptr<const Packet> p, Ipv4Header ipHeader, Ptr<Ipv4Interface> incomingInterface)
 {
   NS_LOG_FUNCTION (this << *p << ipHeader << incomingInterface);
@@ -327,9 +335,7 @@ Ipv4RawSocketImpl::ForwardUp (Ptr<const Packet> p, Ipv4Header ipHeader, Ptr<Ipv4
     }
 
   NS_LOG_LOGIC ("src = " << m_src << " dst = " << m_dst);
-  if ((m_src == Ipv4Address::GetAny () || ipHeader.GetDestination () == m_src) &&
-      (m_dst == Ipv4Address::GetAny () || ipHeader.GetSource () == m_dst) &&
-      ipHeader.GetProtocol () == m_protocol)
+  if (DeliverPacket (ipHeader))
     {
       Ptr<Packet> copy = p->Copy ();
       // Should check via getsockopt ()..

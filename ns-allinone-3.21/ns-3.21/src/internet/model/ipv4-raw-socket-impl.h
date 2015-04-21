@@ -86,6 +86,7 @@ public:
   virtual bool GetAllowBroadcast () const;
 
 protected:
+  virtual bool DeliverPacket (const Ipv4Header& ipHeader);
   virtual void DoDispose (void);
 
   /**

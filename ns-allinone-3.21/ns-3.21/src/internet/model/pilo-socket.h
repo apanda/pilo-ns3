@@ -21,6 +21,7 @@ public:
   virtual int SendTo (Ptr<Packet> p, uint32_t flags, 
                       const Address &toAddress);
 protected:
+  virtual bool DeliverPacket (const Ipv4Header& ipHeader);
   static const uint16_t PROTOCOL = 0xfe;
 };
 }

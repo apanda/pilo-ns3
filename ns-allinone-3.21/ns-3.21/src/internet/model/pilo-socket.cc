@@ -89,4 +89,9 @@ PiloSocket::SendPiloMessage(uint32_t target, PiloMessageType type, Ptr<Packet> p
   return Socket::Send(packet);
 }
 
+bool 
+PiloSocket::DeliverPacket (const Ipv4Header& ipHeader) {
+  return ipHeader.IsPiloControl();
+}
+
 }
