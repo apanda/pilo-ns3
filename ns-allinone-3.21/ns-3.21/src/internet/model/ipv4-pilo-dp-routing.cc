@@ -128,7 +128,7 @@ void
 Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
   // Need to regenerate the m_ifaceToNode table, since ifaces change
   m_ifaceToNode.clear();
-  for (int i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+  for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
     // Add a new entry
     NotifyInterfaceUp(i);
   }

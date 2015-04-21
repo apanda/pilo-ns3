@@ -9,8 +9,8 @@
 #include <vector>
 #include <utility>
 #include <iostream>
-#include <yaml-cpp/yaml.h>
 #include <boost/algorithm/string.hpp>
+#include "yaml-cpp/yaml.h"
 #include "ns3/core-module.h"
 #include "ns3/csma-module.h"
 #include "ns3/applications-module.h"
@@ -34,7 +34,7 @@ int32_t ReadNodeInformation (YAML::Node& setupDoc,
          std::map<std::string, const YAML::Node&>& nodeArgs) {
 
   int32_t nodes = 0;
-  YAML::Node defaultNode = YAML::Load("[]");
+  YAML::Node defaultNode = YAML::Load(std::string("[]"));
   for (YAML::const_iterator it = setupDoc.begin(); it != setupDoc.end(); ++it) {
       const std::string &key = it->first.as<std::string>();
       if (key == LINKS_KEY ||
@@ -133,7 +133,7 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer addrs;
 
   NetDeviceContainer netDevices;
-  for (int32_t i = 0; i < setupDoc["links"].size(); i++) {
+  for (uint32_t i = 0; i < setupDoc["links"].size(); i++) {
     std::vector<std::string> parts;
     boost::split(parts, setupDoc["links"][i].as<std::string>(), boost::is_any_of("-"));
     links.push_back(std::make_pair(parts[0], parts[1]));
