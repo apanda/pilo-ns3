@@ -11,6 +11,7 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 #include "yaml-cpp/yaml.h"
+#include "ns3/node.h"
 #include "ns3/core-module.h"
 #include "ns3/csma-module.h"
 #include "ns3/applications-module.h"
@@ -27,11 +28,22 @@ const std::string CRIT_KEY = "crit_links";
 const std::string RUNFILE_KEY = "runfile";
 const std::string TYPE_KEY = "type";
 const std::string ARG_KEY = "args";
+const std::string HOST_TYPE = "Host";
+const std::string CONTROLLER_TYPE = "Control";
+const std::string SWITCH_TYPE = "Switch"; 
+
+static bool EndsWith (std::string const &str, std::string const &end) {
+  return (str.length() > end.length()) && 
+         (str.compare(str.length() - end.length(), end.length(), end) == 0);
+}
 
 int32_t ReadNodeInformation (YAML::Node& setupDoc, 
          std::map<std::string, int32_t>& nodeMap,
          std::map<std::string, std::string>& nodeType, 
-         std::map<std::string, const YAML::Node&>& nodeArgs) {
+         std::map<std::string, const YAML::Node&>& nodeArgs,
+         std::list<std::string>& hosts,
+         std::list<std::string>& controllers,
+         std::list<std::string>& switches) {
 
   int32_t nodes = 0;
   YAML::Node defaultNode = YAML::Load(std::string("[]"));
@@ -45,11 +57,21 @@ int32_t ReadNodeInformation (YAML::Node& setupDoc,
         continue;
       }
       nodeMap.insert(std::make_pair(key, nodes));
-      nodeType.insert(std::make_pair(key, setupDoc[key][TYPE_KEY].as<std::string>()));
+      std::string type = setupDoc[key][TYPE_KEY].as<std::string>();
+      nodeType.insert(std::make_pair(key, type));
       if (setupDoc[key][ARG_KEY]) {
         nodeArgs.insert(std::make_pair(key, setupDoc[key][ARG_KEY]));
       } else {
         nodeArgs.insert(std::make_pair(key, defaultNode));
+      }
+      if (type.compare(HOST_TYPE) == 0) {
+        hosts.push_back(key);
+      } else if (EndsWith(type, CONTROLLER_TYPE)) {
+        controllers.push_back(key);
+      } else if (EndsWith(type, SWITCH_TYPE)) {
+        switches.push_back(key);
+      } else {
+        std::cerr << "Unexpected type " << type << std::endl;
       }
       nodes++;
   }
@@ -83,48 +105,78 @@ main (int argc, char *argv[])
   std::map<std::string, int32_t> nodeMap;
   std::map<std::string, std::string> nodeType;
   std::map<std::string, const YAML::Node&> nodeArgs;
+  std::list<std::string> hosts;
+  std::list<std::string> controllers;
+  std::list<std::string> switches;
   NS_LOG_INFO ("Create nodes.");
   int32_t nodes = ReadNodeInformation(setupDoc,
                                       nodeMap,
                                       nodeType,
-                                      nodeArgs);
+                                      nodeArgs,
+                                      hosts,
+                                      controllers,
+                                      switches);
   NodeContainer n;
   n.Create (nodes);
 
+  NodeContainer switchContainer;
+  NodeContainer controllerContainer;
+  NodeContainer hostContainer;
 
-//
-// Explicitly create the channels required by the topology (specified by the YAML file).
-//
+  for (auto host : hosts) {
+    hostContainer.Add(n.Get(nodeMap[host]));
+  }
+
+  for (auto controller : controllers) {
+    controllerContainer.Add(n.Get(nodeMap[controller]));
+  }
+
+  for (auto swtch : switches) {
+    switchContainer.Add(n.Get(nodeMap[swtch]));
+  }
+
+
+  // The order here (InternetStack installed before p2p links) is meaningful. Reversing this could be bad.
+  // Need this to assign IP addresses. Basically this is just installing a new IPv4 stack.
+  NS_LOG_INFO ("Install internet stack.");
+  InternetStackHelper switchInternet;
+  // All the various routing models we use
+  Ipv4PiloCtlRoutingHelper ctlRouting;
+  Ipv4PiloDPRoutingHelper dpRouting;
+  Ipv4ListRoutingHelper switchListRouting;
+  // For now, let us not do IPv6. Really no reason for this other than laziness.
+  switchInternet.SetIpv6StackInstall(false);
+  switchInternet.SetIpv4StackInstall(true);
+  // Switches first try using controller routing, then datapath routing.
+  switchListRouting.Add (ctlRouting, 100);
+  switchListRouting.Add (dpRouting, 0);
+  switchInternet.SetRoutingHelper (switchListRouting);
+  switchInternet.Install (switchContainer);
+  // Controllers only route PILO packets
+  InternetStackHelper controllerInternet;
+  controllerInternet.SetIpv6StackInstall(false);
+  controllerInternet.SetIpv4StackInstall(true);
+  controllerInternet.SetRoutingHelper(ctlRouting);
+  controllerInternet.Install (controllerContainer);
+  // Hosts just use static routing
+  Ipv4StaticRoutingHelper staticRouting;
+  InternetStackHelper hostInternet;
+  hostInternet.SetIpv6StackInstall(false);
+  hostInternet.SetIpv4StackInstall(true);
+  hostInternet.SetRoutingHelper(staticRouting);
+  hostInternet.Install(hostContainer);
+  //
+  // Explicitly create the channels required by the topology (specified by the YAML file).
+  //
   NS_LOG_INFO ("Create channels.");
   std::list< std::pair<std::string, std::string> > links;
   std::list< std::pair<int32_t, int32_t> > linksNative;
   PointToPointHelper p2p;
 
-  // The order here (InternetStack installed before p2p links) is meaningful. Reversing this could be bad.
-  // Need this to assign IP addresses. Basically this is just installing a new IPv4 stack.
-  NS_LOG_INFO ("Install internet stack.");
-  InternetStackHelper internet;
-  // For now, let us not do IPv6. Really no reason for this other than laziness.
-  internet.SetIpv6StackInstall(false);
-  internet.SetIpv4StackInstall(true);
-
   // TODO: Change this/make this more general.
   p2p.SetDeviceAttribute("DataRate", StringValue("10Gbps"));
   p2p.SetChannelAttribute("Delay", TimeValue(Time::FromDouble(0.25, Time::MS))); 
 
-
-  // TODO: Switch to PILO version, but roughly this for now.
-  // We want to just allow static routes. Nesting it within list routing is helpful in terms of adding
-  // other strategies later. For example, we would really want a PILO control router at high priority and
-  // a data plane router at higher priority.
-  Ipv4PiloCtlRoutingHelper ctlRouting;
-  Ipv4PiloDPRoutingHelper dpRouting;
-  Ipv4ListRoutingHelper listRouting;
-  // We want ctlRouting to have the highest priority
-  listRouting.Add (ctlRouting, 100);
-  listRouting.Add (dpRouting, 0);
-  internet.SetRoutingHelper (listRouting);
-  internet.Install (n);
 
   // Use this to assign IPv4 addresses.
   Ipv4AddressHelper ipv4;
@@ -146,13 +198,29 @@ main (int argc, char *argv[])
     ipv4.NewNetwork();
   }
 
+  // Assume that hosts are singly homed. Switch off forwarding for hosts and set default path.
+  for (NodeContainer::Iterator it = hostContainer.Begin(); 
+                it != hostContainer.End(); it++) {
+    // Get node.
+    Ptr<Node> node = *it;
+    // Get IP stack for the node.
+    Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
+    // Find the static routing thing from the stack.
+    Ptr<Ipv4StaticRouting> routing = staticRouting.GetStaticRouting(ipv4);
+    // All packets are sent out through node 1.
+    routing->AddNetworkRouteTo(Ipv4Address::GetAny(), Ipv4Mask::GetZero(), 1);
+    // Do not forward packets received on this interface.
+    ipv4->SetForwarding(1, false);
+  }
+
+
   std::cout << "Found " << links.size() << " links " << std::endl; 
-  std::cout << "server at  " << nodeMap["h0"] 
-            << " client at " << nodeMap["h1"] 
+  std::cout << "server at  " << controllerContainer.Get(0)->GetId() 
+            << " client at " << controllerContainer.Get(1)->GetId()
             << " receiving at " << nodeMap["s1"] << std::endl; 
 
   // Create a UDP server to start of
-  Ptr<Node> serverNode = n.Get(nodeMap["h0"]);
+  Ptr<Node> serverNode = controllerContainer.Get(0);
   uint16_t port = 6500;
   PiloCtlServerHelper server (port);
   ApplicationContainer apps = server.Install (serverNode);
@@ -161,7 +229,7 @@ main (int argc, char *argv[])
   Ipv4Address serverAddress = serverNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 
   // Create a UDP client
-  Ptr<Node> clientNode = n.Get(nodeMap["h1"]);
+  Ptr<Node> clientNode = controllerContainer.Get(1);
   uint32_t MaxPacketSize = 1024;
   Time interPacketInterval = Seconds (0.05);
   uint32_t maxPacketCount = 1;

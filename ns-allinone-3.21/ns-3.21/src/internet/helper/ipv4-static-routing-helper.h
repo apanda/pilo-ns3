@@ -156,6 +156,10 @@ public:
    *        Object Name Service
    */
   void SetDefaultMulticastRoute (std::string nName, std::string ndName);
+
+  /**
+   * @apanda: Set default static route for 
+   */
 private:
   /**
    * \internal

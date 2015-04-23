@@ -191,6 +191,8 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       NS_LOG_LOGIC("Received EchoAck ");
       // Ignore EchoAcks
       break;
+    case AddRoute:
+      break;
   };
 }
 
