@@ -193,6 +193,10 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       break;
     case AddRoute:
       break;
+    case GossipRequest:
+      break;
+    case GossipReply:
+      break;
   };
 }
 

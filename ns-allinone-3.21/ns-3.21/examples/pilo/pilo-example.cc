@@ -215,34 +215,67 @@ main (int argc, char *argv[])
 
 
   std::cout << "Found " << links.size() << " links " << std::endl; 
-  std::cout << "server at  " << controllerContainer.Get(0)->GetId() 
-            << " client at " << controllerContainer.Get(1)->GetId()
-            << " receiving at " << nodeMap["s1"] << std::endl; 
+  // std::cout << "server at  " << controllerContainer.Get(0)->GetId() 
+  //           << " client at " << controllerContainer.Get(1)->GetId()
+  //           << " receiving at " << nodeMap["s1"] << std::endl; 
 
-  // Create a UDP server to start of
-  Ptr<Node> serverNode = controllerContainer.Get(0);
-  uint16_t port = 6500;
-  PiloCtlServerHelper server (port);
-  ApplicationContainer apps = server.Install (serverNode);
-  apps.Start (Seconds (1.0));
-  apps.Stop (Seconds (10.0));
-  Ipv4Address serverAddress = serverNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+  std::cout << "Testing controllers at  " << controllerContainer.Get(0)->GetId() << " and "
+            << controllerContainer.Get(1)->GetId() << std::endl; 
+  
+  // // Create a UDP server to start of
+  // Ptr<Node> serverNode = controllerContainer.Get(0);
+  // uint16_t port = 6500;
+  // PiloCtlServerHelper server (port);
+  // ApplicationContainer apps = server.Install (serverNode);
+  // apps.Start (Seconds (1.0));
+  // apps.Stop (Seconds (10.0));
+  // Ipv4Address serverAddress = serverNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 
-  // Create a UDP client
-  Ptr<Node> clientNode = controllerContainer.Get(1);
+  // // Create a UDP client
+  // Ptr<Node> clientNode = controllerContainer.Get(1);
   uint32_t MaxPacketSize = 1024;
   Time interPacketInterval = Seconds (0.05);
   uint32_t maxPacketCount = 1;
-  PiloCtlClientHelper client (serverAddress, port);
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  client.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  //client.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
-  client.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
-  apps = client.Install (clientNode);
-  apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (700.0));
+  // PiloCtlClientHelper client (serverAddress, port);
+  // client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  // client.SetAttribute ("Interval", TimeValue (interPacketInterval));
+  // client.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  // //client.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
+  // client.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
+  // apps = client.Install (clientNode);
+  // apps.Start (Seconds (2.0));
+  // apps.Stop (Seconds (700.0));
 
+  Ptr<Node> cNode1 = controllerContainer.Get(0);
+  Ptr<Node> cNode2 = controllerContainer.Get(1);
+  uint16_t port = 6500;
+  Ipv4Address serverAddress1 = cNode1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+  Ipv4Address serverAddress2 = cNode2->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+
+  // Create a test controller
+  PiloControllerHelper controller1(serverAddress1, port);
+  controller1.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  controller1.SetAttribute ("Interval", TimeValue (interPacketInterval));
+  controller1.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  //controller1.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
+  controller1.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(1)->GetId()));
+
+  // Create a test controller
+  PiloControllerHelper controller2(serverAddress2, port);
+  controller2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  controller2.SetAttribute ("Interval", TimeValue (interPacketInterval));
+  controller2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  //controller2.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
+  controller2.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(0)->GetId()));
+
+  // Start both controllers
+  ApplicationContainer apps = controller1.Install (cNode1);
+  apps.Start (Seconds (2.0));
+  apps.Stop (Seconds (700.0));  
+
+  apps = controller2.Install (cNode2);
+  apps.Start (Seconds (2.0));
+  apps.Stop (Seconds (700.0));  
 
 #if 0
 //

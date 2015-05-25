@@ -17,54 +17,16 @@
  *
  * Author: Mohamed Amine Ismail <amine.ismail@sophia.inria.fr>
  */
-#include "pilo-ctl-helper.h"
-#include "ns3/pilo-ctl-server.h"
-#include "ns3/pilo-ctl-client.h"
+#include "pilo-controller-helper.h"
+#include "ns3/pilo-controller.h"
 #include "ns3/uinteger.h"
 #include "ns3/string.h"
 
 namespace ns3 {
 
-PiloCtlServerHelper::PiloCtlServerHelper ()
-{
-}
-
-PiloCtlServerHelper::PiloCtlServerHelper (uint16_t port)
-{
-  m_factory.SetTypeId (PiloCtlServer::GetTypeId ());
-  SetAttribute ("Port", UintegerValue (port));
-}
-
-void
-PiloCtlServerHelper::SetAttribute (std::string name, const AttributeValue &value)
-{
-  m_factory.Set (name, value);
-}
-
-ApplicationContainer
-PiloCtlServerHelper::Install (NodeContainer c)
-{
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
-    {
-      Ptr<Node> node = *i;
-
-      m_server = m_factory.Create<PiloCtlServer> ();
-      node->AddApplication (m_server);
-      apps.Add (m_server);
-
-    }
-  return apps;
-}
-
-Ptr<PiloCtlServer>
-PiloCtlServerHelper::GetServer (void)
-{
-  return m_server;
-}
-
 PiloControllerHelper::PiloControllerHelper ()
 {
+  m_factory.SetTypeId (PiloController::GetTypeId ());
 }
 
 PiloControllerHelper::PiloControllerHelper (Address address, uint16_t port)

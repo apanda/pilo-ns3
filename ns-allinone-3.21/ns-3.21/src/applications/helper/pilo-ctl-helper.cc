@@ -27,6 +27,7 @@ namespace ns3 {
 
 PiloCtlServerHelper::PiloCtlServerHelper ()
 {
+  m_factory.SetTypeId (PiloCtlServer::GetTypeId ());
 }
 
 PiloCtlServerHelper::PiloCtlServerHelper (uint16_t port)

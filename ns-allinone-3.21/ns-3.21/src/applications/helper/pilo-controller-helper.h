@@ -17,15 +17,15 @@
  *
  * Author: Mohamed Amine Ismail <amine.ismail@sophia.inria.fr>
  */
-#ifndef PILO_CTL_HELPER_H
-#define PILO_CTL_HELPER_H
+#ifndef PILO_CONTROLLER_HELPER_H
+#define PILO_CONTROLLER_HELPER_H
 
 #include <stdint.h>
 #include "ns3/application-container.h"
 #include "ns3/node-container.h"
 #include "ns3/object-factory.h"
 #include "ns3/ipv4-address.h"
-#include "ns3/pilo-ctl-server.h"
+#include "ns3/pilo-controller.h"
 namespace ns3 {
 /**
  * \ingroup udpclientserver
@@ -33,55 +33,6 @@ namespace ns3 {
  *        and uses the information carried into their payload to compute
  *        delay and to determine if some packets are lost.
  */
-class PiloCtlServerHelper
-{
-public:
-  /**
-   * Create PiloCtlServerHelper which will make life easier for people trying
-   * to set up simulations with udp-client-server application.
-   *
-   */
-  PiloCtlServerHelper ();
-
-  /**
-   * Create PiloCtlServerHelper which will make life easier for people trying
-   * to set up simulations with udp-client-server application.
-   *
-   * \param port The port the server will wait on for incoming packets
-   */
-  PiloCtlServerHelper (uint16_t port);
-
-  /**
-   * Record an attribute to be set in each Application after it is is created.
-   *
-   * \param name the name of the attribute to set
-   * \param value the value of the attribute to set
-   */
-  void SetAttribute (std::string name, const AttributeValue &value);
-
-  /**
-   * Create one UDP server application on each of the Nodes in the
-   * NodeContainer.
-   *
-   * \param c The nodes on which to create the Applications.  The nodes
-   *          are specified by a NodeContainer.
-   * \returns The applications created, one Application per Node in the
-   *          NodeContainer.
-   */
-  ApplicationContainer Install (NodeContainer c);
-
-  /**
-   * \brief Return the last created server.
-   *
-   * This function is mainly used for testing.
-   *
-   * \returns a Ptr to the last created server application
-   */
-  Ptr<PiloCtlServer> GetServer (void);
-private:
-  ObjectFactory m_factory; //!< Object factory.
-  Ptr<PiloCtlServer> m_server; //!< The last created server application
-};
 
 class PiloControllerHelper
 {

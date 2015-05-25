@@ -37,7 +37,6 @@ namespace ns3 {
   class LinkEvent {
     
   public:
-    //
     LinkEvent(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state)
     {
       this->switch_id = switch_id;
@@ -62,7 +61,99 @@ namespace ns3 {
     bool state;          // 1 byte
   };
 
+  struct SortLinkEvent {
+    bool operator()(const LinkEvent *a, const LinkEvent *b) {
+      return a->compare(b);
+    }
+  };
 
+  // this class contains the current state of the controller
+  // this is basically a log of all of the events received by the controller
+  class ControllerState {
+  public:
+    ControllerState() {
+      log = new std::set<LinkEvent *, SortLinkEvent>();
+    }
+
+    ~ControllerState() {
+      std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
+
+      for (; it != it_end; it++) {
+        delete (*it);
+      }
+
+      delete log;
+    }
+
+    // returns the first gap in log
+    bool get_event_gap(uint32_t switch_id, uint64_t link_id,
+                       uint64_t *low_event_id, uint64_t *high_event_id) {
+      // iterate over all of the logs
+      std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
+
+      uint64_t last_event_id = 0;
+      bool gap_found = false;
+
+      for (; it != it_end; it++) {
+        LinkEvent *e = *it;
+        if (e->switch_id == switch_id && e->link_id == link_id) {
+          if (last_event_id == 0 || last_event_id == e->event_id - 1)
+            last_event_id = e->event_id;
+          else {
+            *low_event_id = last_event_id;
+            *high_event_id = e->event_id;
+            gap_found = true;
+            break;
+          }
+        }
+      }
+
+      return gap_found;
+    }
+
+    // get all the events within (low_event_id, high_event_id)
+    void get_events_within_gap(uint32_t switch_id, uint64_t link_id, 
+                               uint64_t low_event_id, uint64_t high_event_id,
+                               std::map<uint64_t, bool> *result) {
+      std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
+
+      for (; it != it_end; it++) {
+        LinkEvent *e = *it;
+        if (e->switch_id == switch_id && e->link_id == link_id && 
+            e->event_id > low_event_id && e->event_id < high_event_id) {
+          (*result)[e->event_id] = e->state;
+        }
+      }      
+    }
+
+    void put_event(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state) {
+      LinkEvent *e = new LinkEvent(switch_id, link_id, event_id, state);
+      log->insert(e);
+    }
+
+    std::set<LinkEvent *, SortLinkEvent> *log;
+  };
+
+  struct pilo_gossip_request {
+    uint32_t switch_id;
+    uint64_t link_id;
+    uint64_t low_event_id;
+    uint64_t high_event_id;
+  };
+
+  struct pilo_gossip_reply_header {
+    uint32_t switch_id;
+    uint64_t link_id;
+  };
+
+  struct pilo_gossip_reply_single {
+    uint64_t event_id;
+    bool state;
+  };
+  
 class Socket;
 class Packet;
 
@@ -105,6 +196,8 @@ public:
    */
   void SetRemote (Address ip, uint16_t port);
 
+  void CtlGossip(void);
+
 protected:
   virtual void DoDispose (void);
 
@@ -131,7 +224,7 @@ private:
 
   // <packet uid, source>
   std::map<uint32_t, uint32_t> *messages;
-  std::set<LinkEvent *> *link_states;
+  ControllerState *log;
 };
 
 } // namespace ns3

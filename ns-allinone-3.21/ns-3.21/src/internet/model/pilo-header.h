@@ -11,7 +11,9 @@ enum PiloMessageType {
   NOP = 0, // Do nothing, mostly this is to make sure 0 isn't used for anything important
   Echo = 1, // Recepient echos back this packet
   EchoAck = 2, // The echoed back packet
-  AddRoute = 3 // Add a single route (i.e., one 
+  AddRoute = 3, // Add a single route (i.e., one 
+  GossipRequest = 4,
+  GossipReply = 5,
 };
 
 // PILO message header. Essentially just says what the type is etc. 

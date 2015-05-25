@@ -21,6 +21,7 @@ def build(bld):
         'model/application-packet-probe.cc',
         'model/pilo-ctl-server.cc',
         'model/pilo-ctl-client.cc',
+        'model/pilo-controller.cc',
         'helper/bulk-send-helper.cc',
         'helper/on-off-helper.cc',
         'helper/packet-sink-helper.cc',
@@ -30,6 +31,7 @@ def build(bld):
         'helper/v4ping-helper.cc',
         'helper/radvd-helper.cc',
         'helper/pilo-ctl-helper.cc',
+        'helper/pilo-controller-helper.cc',
         ]
 
     applications_test = bld.create_ns3_module_test_library('applications')
@@ -58,6 +60,7 @@ def build(bld):
         'model/application-packet-probe.h',
         'model/pilo-ctl-server.h',
         'model/pilo-ctl-client.h',
+        'model/pilo-controller.h',
         'helper/bulk-send-helper.h',
         'helper/on-off-helper.h',
         'helper/packet-sink-helper.h',
@@ -67,6 +70,7 @@ def build(bld):
         'helper/v4ping-helper.h',
         'helper/radvd-helper.h',
         'helper/pilo-ctl-helper.h',
+        'helper/pilo-controller-helper.h',
         ]
 
     bld.ns3_python_bindings()

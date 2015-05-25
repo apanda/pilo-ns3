@@ -26,6 +26,7 @@
 #include "ns3/object-factory.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/pilo-ctl-server.h"
+#include "ns3/pilo-ctl-client.h"
 namespace ns3 {
 /**
  * \ingroup udpclientserver
