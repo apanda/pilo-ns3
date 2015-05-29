@@ -11,6 +11,7 @@
 #include "ns3/simulator.h"
 #include "ns3/ipv4-route.h"
 #include "ns3/output-stream-wrapper.h"
+#include "ns3/internet-module.h"
 
 NS_LOG_COMPONENT_DEFINE ("Ipv4PiloDPRouting");
 namespace ns3 {
@@ -29,6 +30,35 @@ Ipv4PiloDPRouting::GetTypeId (void) {
 Ipv4PiloDPRouting::Ipv4PiloDPRouting ():
     m_ipv4(NULL) {
   NS_LOG_FUNCTION (this);
+  switch_id = 0;
+  link_states = new std::map<uint64_t, link_state>();
+}
+
+Ipv4PiloDPRouting::~Ipv4PiloDPRouting() {
+  delete link_states;
+}
+
+void
+Ipv4PiloDPRouting::SetSwitchId(uint32_t id) {
+  this->switch_id = id;
+}
+
+uint32_t
+Ipv4PiloDPRouting::GetSwitchId() {
+  return this->switch_id;
+}
+
+uint64_t
+Ipv4PiloDPRouting::GetLinkId(uint32_t switch_id0, uint32_t switch_id1) {
+  uint64_t link_id = 0;
+
+  uint32_t *ptr0 = (uint32_t *) &link_id;
+  uint32_t *ptr1 = ((uint32_t *) &link_id)+1;
+        
+  *ptr0 = switch_id0 < switch_id1 ? switch_id0 : switch_id1;
+  *ptr1 = switch_id0 > switch_id1 ? switch_id0 : switch_id1;
+  
+  return 0;
 }
 
 Ptr<Ipv4Route> 
@@ -117,8 +147,31 @@ Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
         NS_ASSERT(chan->GetDevice(1)->GetNode() == m_ipv4->GetObject<Node>());
         m_ifaceToNode[iface] = chan->GetDevice(0)->GetNode()->GetId();
       }
+        
+      Ipv4PiloDPRoutingHelper dpRouting;
+      Ptr<Ipv4PiloDPRouting> node0 = dpRouting.GetPiloDPRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
+      Ptr<Ipv4PiloDPRouting> node1 = dpRouting.GetPiloDPRouting(chan->GetDevice(1)->GetNode()->GetObject<Ipv4>());
+      
+      if (node0 != 0 && node1 != 0) {
+        
+        uint32_t switch_id0 = node0->GetSwitchId();
+        uint32_t switch_id1 = node1->GetSwitchId();
+        uint64_t link_id = GetLinkId(switch_id0, switch_id1);
+          
+        if (link_states->find(link_id) == link_states->end()) {
+          (*link_states)[link_id] = link_state(0, true);
+        } else {
+          link_state current_state = (*link_states)[link_id];
+          if (!current_state.state) {
+            (*link_states)[link_id].event_id = (*link_states)[link_id].event_id + 1;
+            (*link_states)[link_id].state = true;
+          }
+        }
+      }
+
       NS_LOG_LOGIC ("Adding mapping iface " << iface << " leads to " << m_ifaceToNode[iface]);
     }
+      
   } else {
     NS_LOG_LOGIC ("Ignoring non-point-to-point device " << iface);
   }
@@ -126,6 +179,28 @@ Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
 
 void
 Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
+  // change the state here
+  Ptr<NetDevice> dev = m_ipv4->GetNetDevice(iface);
+  Ptr<Channel> chan = dev->GetChannel();
+
+  Ipv4PiloDPRoutingHelper dpRouting;
+  Ptr<Ipv4PiloDPRouting> node0 = dpRouting.GetPiloDPRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
+  Ptr<Ipv4PiloDPRouting> node1 = dpRouting.GetPiloDPRouting(chan->GetDevice(1)->GetNode()->GetObject<Ipv4>());
+  
+  if (node0 != 0 && node1 != 0) {
+    uint32_t switch_id0 = node0->GetSwitchId();
+    uint32_t switch_id1 = node1->GetSwitchId();
+    uint64_t link_id = GetLinkId(switch_id0, switch_id1);
+    
+    if (link_states->find(link_id) != link_states->end()) {
+      link_state current_state = (*link_states)[link_id];
+      if (current_state.state) {
+        (*link_states)[link_id].event_id = (*link_states)[link_id].event_id + 1;
+        (*link_states)[link_id].state = false;
+      }
+    }
+  }
+  
   // Need to regenerate the m_ifaceToNode table, since ifaces change
   m_ifaceToNode.clear();
   for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
@@ -193,9 +268,34 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       break;
     case AddRoute:
       break;
-    case GossipRequest:
+    case LinkState:
+      {
+        // send to all controllers the current link states
+        std::map<uint64_t, link_state>::iterator it = link_states->begin();
+        std::map<uint64_t, link_state>::iterator it_end = link_states->end();
+        
+        for (; it != it_end; it++) {
+          InterfaceStateMessage m;
+          
+          m.switch_id = this->switch_id;
+          m.link_id = it->first;
+          m.event_id = it->second.event_id;
+          m.state = it->second.state;
+          
+          Ptr<Packet> p = Create<Packet> ((uint8_t *) &m, sizeof(m));
+          if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p)) {
+            NS_LOG_LOGIC("Sent link state reply");
+          }
+        }
+      }
       break;
-    case GossipReply:
+    // case LinkStateReply:
+    //   break;
+    // case GossipRequest:
+    //   break;
+    // case GossipReply:
+    //   break;
+    default:
       break;
   };
 }

@@ -28,6 +28,29 @@ class Ipv4RoutingTableEntry;
 class Ipv4MulticastRoutingTableEntry;
 class Node;
 
+struct InterfaceStateMessage {
+  uint32_t switch_id;
+  uint64_t link_id;
+  uint64_t event_id;
+  bool state;
+};
+
+struct link_state {
+  uint64_t event_id;
+  bool state;
+  
+  link_state() {
+    event_id = 0;
+    state = true;
+  }
+  
+  link_state(uint64_t event_id_, bool state_) {
+    event_id = event_id_;
+      state = state_;
+  }
+};
+
+
 class Ipv4PiloDPRouting : public Ipv4RoutingProtocol
 {
   typedef std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash> 
@@ -38,6 +61,7 @@ class Ipv4PiloDPRouting : public Ipv4RoutingProtocol
             IfaceToNode;
 public:
   Ipv4PiloDPRouting ();
+  ~Ipv4PiloDPRouting();
 
   static TypeId GetTypeId (void);
 
@@ -136,6 +160,10 @@ public:
    * \param stream the ostream the Routing table is printed to
    */
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
+  
+  void SetSwitchId(uint32_t id);
+  uint32_t GetSwitchId();
+  uint64_t GetLinkId(uint32_t switch_id0, uint32_t switch_id1);
 
 protected:
   void HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt);
@@ -146,6 +174,8 @@ protected:
   IfaceToNode m_ifaceToNode;
   Ptr<PiloSocket> m_socket; //!< PILO socket
   static const uint16_t PORT = 6500;
+  uint32_t switch_id;
+  std::map<uint64_t, link_state> *link_states; // link_id: event_id
 };
 
 }

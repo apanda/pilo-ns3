@@ -31,6 +31,7 @@
 #include "ns3/ptr.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/pilo-socket.h"
+#include "ns3/internet-module.h"
 
 namespace ns3 {
 
@@ -197,6 +198,7 @@ public:
   void SetRemote (Address ip, uint16_t port);
 
   void CtlGossip(void);
+  void GetLinkState(void);
 
 protected:
   virtual void DoDispose (void);

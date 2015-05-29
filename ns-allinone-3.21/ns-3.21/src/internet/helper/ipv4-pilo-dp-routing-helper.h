@@ -6,6 +6,7 @@
 #ifndef IPV4_PILO_DP_ROUTING_HELPER_H
 #define IPV4_PILO_DP_ROUTING_HELPER_H
 #include "ns3/ipv4-routing-helper.h"
+#include "ns3/ipv4-pilo-dp-routing.h"
 namespace ns3 {
 class Ipv4PiloDPRoutingHelper : public Ipv4RoutingHelper {
 public:
@@ -26,6 +27,8 @@ public:
    * \returns a newly-created routing protocol
    */
   virtual Ptr<Ipv4RoutingProtocol> Create (Ptr<Node> node) const;
+
+  Ptr<Ipv4PiloDPRouting> GetPiloDPRouting (Ptr<Ipv4> ipv4) const;
 
 };
 }

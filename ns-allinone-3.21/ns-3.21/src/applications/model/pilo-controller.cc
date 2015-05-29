@@ -148,10 +148,9 @@ PiloController::StartApplication (void)
         }
     }
 
+  //m_sendEvent = Simulator::Schedule(Seconds(0.0), &PiloController::CtlGossip, this);
   m_socket->SetRecvCallback (MakeCallback(&PiloController::HandleRead, this));
-  //m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloController::Send, this);
-
-  m_sendEvent = Simulator::Schedule(Seconds(0.0), &PiloController::CtlGossip, this);
+  m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloController::GetLinkState, this);
 }
 
 void
@@ -195,6 +194,37 @@ PiloController::Send (void)
       m_sendEvent = Simulator::Schedule (m_interval, &PiloController::CtlGossip, this);
     }
 }
+
+
+void
+PiloController::GetLinkState (void)
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT (m_sendEvent.IsExpired ());
+  //PiloHeader hdr(GetNode()->GetId(), m_targetNode, Echo); 
+  Ptr<Packet> p = Create<Packet> ((uint8_t*)"Hello", 6);
+  //p->AddHeader(hdr);
+
+  std::stringstream peerAddressStringStream;
+  peerAddressStringStream << Ipv4Address::ConvertFrom (m_peerAddress);
+
+  if ((m_socket->SendPiloMessage(m_targetNode, LinkState, p)) >= 0)
+    {
+      ++m_sent;
+      NS_LOG_INFO ("TraceDelay TX " << m_size << " bytes to "
+                                    << peerAddressStringStream.str () << " Uid: "
+                                    << p->GetUid () << " Time: "
+                                    << (Simulator::Now ()).GetSeconds () << " Seq: ");
+
+    }
+  else
+    {
+      NS_LOG_INFO ("Error while sending " << m_size << " bytes to "
+                                          << peerAddressStringStream.str ());
+    }
+
+}
+
 
 
   void
@@ -282,6 +312,13 @@ PiloController::Send (void)
                 ++count;
               }
 
+            } else if (piloHdr.GetType() == LinkStateReply) {
+              NS_LOG_LOGIC("Received LinkStateReply message");
+              InterfaceStateMessage msg;
+              packet->CopyData((uint8_t *) &msg, sizeof(msg));
+
+              NS_LOG_LOGIC("switch_id: " << msg.switch_id << ", link id: " << msg.link_id << ", event_id: " << msg.event_id
+                           << ", state: " << msg.state);
             } else {
               NS_LOG_LOGIC("Received some other type " << piloHdr.GetType() <<
                            " from " << piloHdr.GetSourceNode());

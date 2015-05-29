@@ -14,6 +14,8 @@ enum PiloMessageType {
   AddRoute = 3, // Add a single route (i.e., one 
   GossipRequest = 4,
   GossipReply = 5,
+  LinkState = 8,
+  LinkStateReply = 9,
 };
 
 // PILO message header. Essentially just says what the type is etc. 
