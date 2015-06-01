@@ -245,16 +245,16 @@ main (int argc, char *argv[])
   Ptr<Node> cNode1 = controllerContainer.Get(0);
   Ptr<Node> cNode2 = controllerContainer.Get(1);
   uint16_t port = 6500;
-  //Ipv4Address serverAddress1 = cNode1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+  Ipv4Address serverAddress1 = cNode1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
   Ipv4Address serverAddress2 = cNode2->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 
-  // // // Create a test controller
-  // PiloControllerHelper controller1(serverAddress1, port);
-  // controller1.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  // controller1.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  // controller1.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  // //controller1.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
-  // //controller1.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(1)->GetId()));
+  // Create a test controller
+  PiloControllerHelper controller1(serverAddress1, port);
+  controller1.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+  controller1.SetAttribute ("Interval", TimeValue (interPacketInterval));
+  controller1.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
+  //controller1.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
+  //controller1.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(1)->GetId()));
 
   // Create a test controller
   PiloControllerHelper controller2(serverAddress2, port);
@@ -266,9 +266,9 @@ main (int argc, char *argv[])
   
   // Start both controllers
   ApplicationContainer apps;
-  // apps = controller1.Install (cNode1);
-  // apps.Start (Seconds (2.0));
-  // apps.Stop (Seconds (700.0));  
+  apps = controller1.Install (cNode1);
+  apps.Start (Seconds (2.0));
+  apps.Stop (Seconds (700.0));  
 
   apps = controller2.Install (cNode2);
   apps.Start (Seconds (2.0));

@@ -50,6 +50,7 @@ Ipv4PiloDPRouting::GetSwitchId() {
 
 uint64_t
 Ipv4PiloDPRouting::GetLinkId(uint32_t switch_id0, uint32_t switch_id1) {
+
   uint64_t link_id = 0;
 
   uint32_t *ptr0 = (uint32_t *) &link_id;
@@ -58,7 +59,20 @@ Ipv4PiloDPRouting::GetLinkId(uint32_t switch_id0, uint32_t switch_id1) {
   *ptr0 = switch_id0 < switch_id1 ? switch_id0 : switch_id1;
   *ptr1 = switch_id0 > switch_id1 ? switch_id0 : switch_id1;
   
-  return 0;
+  return link_id;
+}
+
+uint32_t
+Ipv4PiloDPRouting::GetOtherSwitchId(uint64_t link_, uint32_t switch_id) {
+
+  uint64_t link_id = link_;
+
+  uint32_t *ptr0 = (uint32_t *) &link_id;
+  uint32_t *ptr1 = ((uint32_t *) &link_id)+1;
+
+  uint32_t ret = (*ptr0 == switch_id) ? *ptr1 : *ptr0;
+  
+  return ret;
 }
 
 Ptr<Ipv4Route> 
@@ -278,13 +292,14 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
           InterfaceStateMessage m;
           
           m.switch_id = this->switch_id;
+          m.other_switch_id = GetOtherSwitchId(it->first, this->switch_id);
           m.link_id = it->first;
           m.event_id = it->second.event_id;
           m.state = it->second.state;
           
           Ptr<Packet> p = Create<Packet> ((uint8_t *) &m, sizeof(m));
-          if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p)) {
-            NS_LOG_LOGIC("Sent link state reply");
+          if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p) < 0) {
+            NS_LOG_LOGIC("Error sending link state reply");
           }
         }
       }

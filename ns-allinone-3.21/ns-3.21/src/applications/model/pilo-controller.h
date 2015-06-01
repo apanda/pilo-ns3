@@ -227,6 +227,7 @@ private:
   // <packet uid, source>
   std::map<uint32_t, uint32_t> *messages;
   ControllerState *log;
+  int counter;
 };
 
 } // namespace ns3

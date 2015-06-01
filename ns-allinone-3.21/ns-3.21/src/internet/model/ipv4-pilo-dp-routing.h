@@ -33,6 +33,7 @@ struct InterfaceStateMessage {
   uint64_t link_id;
   uint64_t event_id;
   bool state;
+  uint32_t other_switch_id;
 };
 
 struct link_state {
@@ -46,7 +47,7 @@ struct link_state {
   
   link_state(uint64_t event_id_, bool state_) {
     event_id = event_id_;
-      state = state_;
+    state = state_;
   }
 };
 
@@ -164,6 +165,7 @@ public:
   void SetSwitchId(uint32_t id);
   uint32_t GetSwitchId();
   uint64_t GetLinkId(uint32_t switch_id0, uint32_t switch_id1);
+  uint32_t GetOtherSwitchId(uint64_t link_, uint32_t switch_id);
 
 protected:
   void HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt);

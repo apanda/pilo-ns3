@@ -87,6 +87,7 @@ PiloController::PiloController ()
   
   messages = new std::map<uint32_t, uint32_t>();
   log = new ControllerState();
+  counter = 0;
 }
 
 PiloController::~PiloController ()
@@ -150,7 +151,11 @@ PiloController::StartApplication (void)
 
   //m_sendEvent = Simulator::Schedule(Seconds(0.0), &PiloController::CtlGossip, this);
   m_socket->SetRecvCallback (MakeCallback(&PiloController::HandleRead, this));
+
+  // periodically query for link states from switches
   m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloController::GetLinkState, this);
+  // start gossiping
+  m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
 }
 
 void
@@ -191,7 +196,7 @@ PiloController::Send (void)
 
   if (m_sent < m_count)
     {
-      m_sendEvent = Simulator::Schedule (m_interval, &PiloController::CtlGossip, this);
+      m_sendEvent = Simulator::Schedule (m_interval, &PiloController::Send, this);
     }
 }
 
@@ -200,7 +205,7 @@ void
 PiloController::GetLinkState (void)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_sendEvent.IsExpired ());
+  //NS_ASSERT (m_sendEvent.IsExpired ());
   //PiloHeader hdr(GetNode()->GetId(), m_targetNode, Echo); 
   Ptr<Packet> p = Create<Packet> ((uint8_t*)"Hello", 6);
   //p->AddHeader(hdr);
@@ -208,7 +213,7 @@ PiloController::GetLinkState (void)
   std::stringstream peerAddressStringStream;
   peerAddressStringStream << Ipv4Address::ConvertFrom (m_peerAddress);
 
-  if ((m_socket->SendPiloMessage(m_targetNode, LinkState, p)) >= 0)
+  if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkState, p)) >= 0)
     {
       ++m_sent;
       NS_LOG_INFO ("TraceDelay TX " << m_size << " bytes to "
@@ -313,14 +318,16 @@ PiloController::GetLinkState (void)
               }
 
             } else if (piloHdr.GetType() == LinkStateReply) {
-              NS_LOG_LOGIC("Received LinkStateReply message");
+              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
               InterfaceStateMessage msg;
               packet->CopyData((uint8_t *) &msg, sizeof(msg));
 
-              NS_LOG_LOGIC("switch_id: " << msg.switch_id << ", link id: " << msg.link_id << ", event_id: " << msg.event_id
+              log->put_event(msg.switch_id, msg.link_id, msg.event_id, msg.state);
+
+              NS_LOG_LOGIC("switch_id: " << msg.switch_id << ", other switch id: " << msg.other_switch_id << ", link id: " << msg.link_id << ", event_id: " << msg.event_id
                            << ", state: " << msg.state);
             } else {
-              NS_LOG_LOGIC("Received some other type " << piloHdr.GetType() <<
+              NS_LOG_LOGIC("Server " << m_peerAddress << " received some other type " << piloHdr.GetType() <<
                            " from " << piloHdr.GetSourceNode());
             }
           }
@@ -329,7 +336,7 @@ PiloController::GetLinkState (void)
 
   // the controller will periodically ask other controllers to give it information
   void PiloController::CtlGossip(void) {
-    NS_LOG_FUNCTION (this);
+    //NS_LOG_FUNCTION (this);
     NS_ASSERT (m_sendEvent.IsExpired ());
 
     // request other controllers for link state information for a single switch
@@ -340,8 +347,7 @@ PiloController::GetLinkState (void)
     uint64_t low_event_id = 13;
     uint64_t high_event_id = 19;
 
-    if (log->get_event_gap(switch_id, link_id, &low_event_id, &high_event_id) || true) {
-
+    if (log->get_event_gap(switch_id, link_id, &low_event_id, &high_event_id)) {
       pilo_gossip_request request;
       request.switch_id = switch_id;
       request.link_id = link_id;
@@ -354,7 +360,13 @@ PiloController::GetLinkState (void)
         ++m_sent;
         NS_LOG_INFO ("Sent gossip message to node " << m_targetNode);
       }
-    }    
+    }
+
+    // reschedule itself
+    if (counter < 10) {
+      Simulator::Schedule (Seconds(1), &PiloController::CtlGossip, this);
+      counter++;
+    }
   }
 
 } // Namespace ns3
