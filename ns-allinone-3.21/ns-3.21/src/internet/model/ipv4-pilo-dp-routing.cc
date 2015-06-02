@@ -202,6 +202,13 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
   Ptr<Ipv4PiloDPRouting> node0 = dpRouting.GetPiloDPRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
   Ptr<Ipv4PiloDPRouting> node1 = dpRouting.GetPiloDPRouting(chan->GetDevice(1)->GetNode()->GetObject<Ipv4>());
   
+  // Need to regenerate the m_ifaceToNode table, since ifaces change
+  m_ifaceToNode.clear();
+  for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+    // Add a new entry
+    NotifyInterfaceUp(i);
+  }
+
   if (node0 != 0 && node1 != 0) {
     uint32_t switch_id0 = node0->GetSwitchId();
     uint32_t switch_id1 = node1->GetSwitchId();
@@ -213,16 +220,10 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
         (*link_states)[link_id].event_id = (*link_states)[link_id].event_id + 1;
         (*link_states)[link_id].state = false;
 
-        NS_LOG_LOGIC("Link down between switch " << switch_id0 << " and switch " << switch_id1);
+        NS_LOG_LOGIC("Link down between switch " << switch_id0 << " and switch " << switch_id1 << 
+                     " for link id " << link_id);
       }
     }
-  }
-  
-  // Need to regenerate the m_ifaceToNode table, since ifaces change
-  m_ifaceToNode.clear();
-  for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
-    // Add a new entry
-    NotifyInterfaceUp(i);
   }
 }
 
@@ -290,21 +291,27 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
         // send to all controllers the current link states
         std::map<uint64_t, link_state>::iterator it = link_states->begin();
         std::map<uint64_t, link_state>::iterator it_end = link_states->end();
+
+        const size_t total_size = (const size_t) (link_states->size() * sizeof(InterfaceStateMessage));
+        uint8_t buf[total_size];
+        int counter = 0;
         
         for (; it != it_end; it++) {
-          InterfaceStateMessage m;
+          InterfaceStateMessage *m = (InterfaceStateMessage *) (buf + sizeof(InterfaceStateMessage) * counter);
           
-          m.switch_id = this->switch_id;
-          m.other_switch_id = GetOtherSwitchId(it->first, this->switch_id);
-          m.link_id = it->first;
-          m.event_id = it->second.event_id;
-          m.state = it->second.state;
-          
-          Ptr<Packet> p = Create<Packet> ((uint8_t *) &m, sizeof(m));
-          if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p) < 0) {
-            NS_LOG_LOGIC("Error sending link state reply");
-          }
+          m->switch_id = this->switch_id;
+          m->other_switch_id = GetOtherSwitchId(it->first, this->switch_id);
+          m->link_id = it->first;
+          m->event_id = it->second.event_id;
+          m->state = it->second.state;
+          counter++;
         }
+
+        Ptr<Packet> p = Create<Packet> (buf, total_size);
+        if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p) < 0) {
+          NS_LOG_LOGIC("Error sending link state reply");
+        }
+
       }
       break;
     // case LinkStateReply:

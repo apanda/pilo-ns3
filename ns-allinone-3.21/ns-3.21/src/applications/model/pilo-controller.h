@@ -72,8 +72,13 @@ namespace ns3 {
   // this is basically a log of all of the events received by the controller
   class ControllerState {
   public:
+    typedef std::set<uint64_t>::iterator LinkIterator;
+    typedef std::set<LinkEvent *, SortLinkEvent>::iterator LinkEventIterator;
+
     ControllerState() {
       log = new std::set<LinkEvent *, SortLinkEvent>();
+      it = log->begin();
+      links = new std::set<uint64_t>();
     }
 
     ~ControllerState() {
@@ -85,6 +90,7 @@ namespace ns3 {
       }
 
       delete log;
+      delete links;
     }
 
     // returns the first gap in log
@@ -94,19 +100,19 @@ namespace ns3 {
       std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
       std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
 
-      uint64_t last_event_id = 0;
+      uint64_t last_event_id = (*it)->event_id;
       bool gap_found = false;
 
       for (; it != it_end; it++) {
         LinkEvent *e = *it;
         if (e->switch_id == switch_id && e->link_id == link_id) {
-          if (last_event_id == 0 || last_event_id == e->event_id - 1)
-            last_event_id = e->event_id;
-          else {
+          if (last_event_id < e->event_id - 1 && last_event_id != e->event_id) {
             *low_event_id = last_event_id;
             *high_event_id = e->event_id;
             gap_found = true;
             break;
+          } else {
+            last_event_id = e->event_id;
           }
         }
       }
@@ -133,9 +139,53 @@ namespace ns3 {
     void put_event(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state) {
       LinkEvent *e = new LinkEvent(switch_id, link_id, event_id, state);
       log->insert(e);
+      links->insert(e->link_id);
+    }
+
+    void reset_iterator() {
+      it = log->begin();
+    }
+
+    LinkEvent* get_next() {
+      if (it == log->end())
+        return NULL;
+      LinkEvent *e = *it;
+      it++;
+      return e;
+    }
+
+    LinkEventIterator link_event_begin() {
+      return log->begin();
+    }
+
+    LinkEventIterator link_event_end() {
+      return log->end();
+    }
+
+    LinkIterator link_begin() {
+      return links->begin();
+    }
+
+    LinkIterator link_end() {
+      return links->end();
+    }
+
+    static uint32_t GetSwitch0(uint64_t link_id) {
+      uint64_t link_ = link_id;
+      uint32_t *ptr0 = (uint32_t *) &link_;
+      return *ptr0;
+    }
+
+    static uint32_t GetSwitch1(uint64_t link_id) {
+      uint64_t link_ = link_id;
+      uint32_t *ptr1 = ((uint32_t *) &link_)+1;
+      return *ptr1;
     }
 
     std::set<LinkEvent *, SortLinkEvent> *log;
+    std::set<LinkEvent *, SortLinkEvent>::iterator it;
+
+    std::set<uint64_t> *links; // a list of link ids
   };
 
   struct pilo_gossip_request {
@@ -199,6 +249,7 @@ public:
 
   void CtlGossip(void);
   void GetLinkState(void);
+  void CurrentLog(void);
 
 protected:
   virtual void DoDispose (void);
@@ -229,6 +280,7 @@ private:
   ControllerState *log;
   int gossip_send_counter;
   int link_state_send_counter;
+  int max_counter;
 };
 
 } // namespace ns3
