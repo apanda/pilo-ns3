@@ -5,7 +5,12 @@
 #ifndef PILO_HEADER_H
 #define PILO_HEADER_H
 
+#include "ns3/assert.h"
+#include "ns3/log.h"
 #include "ns3/header.h"
+#include "ns3/simulator.h"
+#include "ns3/packet.h"
+#include "ns3/ipv4-address.h"
 namespace ns3 {
 enum PiloMessageType {
   NOP = 0, // Do nothing, mostly this is to make sure 0 isn't used for anything important
@@ -38,12 +43,14 @@ public:
   virtual uint32_t GetSerializedSize (void) const;
   virtual void Serialize (Buffer::Iterator start) const;
   virtual uint32_t Deserialize (Buffer::Iterator start);
+  static Ptr<Packet> GetPiloAddRoutePacket (const Ipv4Address &addr, uint32_t link);
+  static Ptr<Packet> CreatePiloAddRoutePacket (const Ipv4Address &addr, uint32_t link);
+  void ReadPiloAddRoutePacket(Ipv4Address& addr, uint32_t& link);
 protected:
   uint32_t m_sourceNode;
   uint32_t m_targetNode;
   PiloMessageType m_type;
 };
-
-
 }
+
 #endif

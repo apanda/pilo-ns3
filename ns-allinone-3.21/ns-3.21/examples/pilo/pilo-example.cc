@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <tuple>
 #include <list>
 #include <vector>
 #include <utility>
@@ -108,6 +109,7 @@ main (int argc, char *argv[])
   std::list<std::string> hosts;
   std::list<std::string> controllers;
   std::list<std::string> switches;
+  std::map<std::tuple<int32_t, int32_t>, Ptr<PointToPointChannel>> channels; 
   NS_LOG_INFO ("Create nodes.");
   int32_t nodes = ReadNodeInformation(setupDoc,
                                       nodeMap,
@@ -210,6 +212,19 @@ main (int argc, char *argv[])
     netDevices.Add(device);
     addrs.Add(ipv4.Assign(device));
     ipv4.NewNetwork();
+    // Hook things ip so link failures are percolated to routing. 
+    Ptr<Ipv4> ipv4S = linkNodes.Get(0)->GetObject<Ipv4>();
+    Ptr<Ipv4> ipv4D = linkNodes.Get(1)->GetObject<Ipv4>();
+    device.Get(0)->AddLinkChangeCallback(MakeBoundCallback(Ipv4::LinkStateCallback, 
+                                                          ipv4S,
+                                                          ipv4S->GetInterfaceForDevice(device.Get(0))));
+    device.Get(1)->AddLinkChangeCallback(MakeBoundCallback(Ipv4::LinkStateCallback, 
+                                                          ipv4D,
+                                                          ipv4D->GetInterfaceForDevice(device.Get(1))));
+    channels[std::make_tuple(nodeMap[parts[0]], nodeMap[parts[1]])] = 
+                                            DynamicCast<PointToPointChannel>(device.Get(0)->GetChannel());
+    channels[std::make_tuple(nodeMap[parts[1]], nodeMap[parts[0]])] = 
+                                            DynamicCast<PointToPointChannel>(device.Get(1)->GetChannel());
   }
 
   // Assume that hosts are singly homed. Switch off forwarding for hosts and set default path.
@@ -264,7 +279,7 @@ main (int argc, char *argv[])
   controller2.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
   //controller2.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(0)->GetId()));
   
-  // Start both controllers
+  
   ApplicationContainer apps;
   apps = controller1.Install (cNode1);
   apps.Start (Seconds (2.0));
@@ -298,6 +313,9 @@ main (int argc, char *argv[])
   // apps = client.Install (clientNode);
   // apps.Start (Seconds (2.0));
   // apps.Stop (Seconds (700.0));
+
+  // Demonstrate how to set a link down 10 seconds in simulation time
+  Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s6"], nodeMap["s49"])]);
 
 #if 0
 //

@@ -67,4 +67,18 @@ Ipv4::~Ipv4 ()
   NS_LOG_FUNCTION (this);
 }
 
+void 
+Ipv4::LinkStateChange (uint32_t iface) {
+    if (GetNetDevice(iface)->IsLinkUp()) {
+        SetUp(iface);
+    } else {
+        SetDown(iface);
+    }
+}
+
+void 
+Ipv4::LinkStateCallback (Ptr<Ipv4> ipv4, uint32_t iface) {
+    ipv4->LinkStateChange(iface);
+}
+
 } // namespace ns3

@@ -185,6 +185,10 @@ public:
   virtual void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
   virtual bool SupportsSendFrom (void) const;
 
+  void SetLinkUp(void);
+
+  void SetLinkDown(void);
+
 protected:
   void DoMpiReceive (Ptr<Packet> p);
 
@@ -247,6 +251,8 @@ private:
   void TransmitComplete (void);
 
   void NotifyLinkUp (void);
+
+  void NotifyLinkDown (void);
 
   /**
    * Enumeration of the states of the transmit machine of the net device.

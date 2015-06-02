@@ -348,6 +348,10 @@ public:
    */
   virtual void SetDown (uint32_t interface) = 0;
 
+  virtual void LinkStateChange (uint32_t iface);
+
+  static void LinkStateCallback (Ptr<Ipv4> ipv4, uint32_t iface);
+
   /**
    * \param interface Interface number of Ipv4 interface
    * \returns true if IP forwarding enabled for input datagrams on this device

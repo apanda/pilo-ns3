@@ -150,4 +150,18 @@ PointToPointChannel::IsInitialized (void) const
   return true;
 }
 
+void PointToPointChannel::SetLinkDown() {
+    for (int i = 0; i < m_nDevices; i++) {
+        m_link[i].m_src->SetLinkDown();
+    }
+}
+
+/*
+ * @apanda: Mark this link as up.
+ */
+void PointToPointChannel::SetLinkUp() {
+    for (int i = 0; i < m_nDevices; i++) {
+        m_link[i].m_src->SetLinkUp();
+    }
+}
 } // namespace ns3

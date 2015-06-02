@@ -92,6 +92,15 @@ public:
    */
   virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
 
+  /*
+   * @apanda: Mark this link as down.
+   */
+  void SetLinkDown();
+
+  /*
+   * @apanda: Mark this link as up.
+   */
+  void SetLinkUp();
 protected:
   /*
    * \brief Get the delay associated with this channel

@@ -224,6 +224,7 @@ class Packet : public SimpleRefCount<Packet>
 {
 public:
 
+   Packet (Buffer& m_buffer);
   /**
    * \brief Create an empty packet with a new uid (as returned
    * by getUid).

@@ -84,4 +84,20 @@ PiloHeader::Deserialize (Buffer::Iterator start)
   m_type = (PiloMessageType)i.ReadNtohU32();
   return GetSerializedSize ();
 }
+
+Ptr<Packet>
+PiloHeader::CreatePiloAddRoutePacket (const Ipv4Address &addr, uint32_t link) {
+  const size_t BUFFER_SIZE = 8;
+  Buffer buffer(BUFFER_SIZE);
+  Buffer::Iterator i = buffer.Begin();
+  i.WriteHtonU32(addr.Get());
+  i.WriteHtonU32(link);
+  Ptr<Packet> packet = Create<Packet>(buffer);
+  return packet;
+}
+
+void
+PiloHeader::ReadPiloAddRoutePacket(Ipv4Address& addr, uint32_t& link) {
+  
+}
 }

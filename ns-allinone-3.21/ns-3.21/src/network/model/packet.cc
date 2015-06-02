@@ -143,6 +143,16 @@ Packet::Packet ()
   m_globalUid++;
 }
 
+Packet::Packet (Buffer &buffer)
+  : m_buffer (buffer),
+    m_byteTagList (),
+    m_packetTagList (),
+    m_metadata (static_cast<uint64_t> (Simulator::GetSystemId ()) << 32 | m_globalUid, 0),
+    m_nixVector (0)
+{
+  m_globalUid++;
+}
+
 Packet::Packet (const Packet &o)
   : m_buffer (o.m_buffer),
     m_byteTagList (o.m_byteTagList),
