@@ -87,7 +87,8 @@ PiloController::PiloController ()
   
   messages = new std::map<uint32_t, uint32_t>();
   log = new ControllerState();
-  counter = 0;
+  gossip_send_counter = 0;
+  link_state_send_counter = 0;
 }
 
 PiloController::~PiloController ()
@@ -228,9 +229,12 @@ PiloController::GetLinkState (void)
                                           << peerAddressStringStream.str ());
     }
 
+  // reschedule itself
+  if (link_state_send_counter < 10) {
+    Simulator::Schedule (Seconds(0.5), &PiloController::GetLinkState, this);
+    link_state_send_counter++;
+  }
 }
-
-
 
   void
   PiloController::HandleRead (Ptr<Socket> socket)
@@ -348,6 +352,8 @@ PiloController::GetLinkState (void)
     uint64_t high_event_id = 19;
 
     if (log->get_event_gap(switch_id, link_id, &low_event_id, &high_event_id)) {
+      NS_LOG_INFO("Gossip event log gaps found");
+
       pilo_gossip_request request;
       request.switch_id = switch_id;
       request.link_id = link_id;
@@ -356,16 +362,16 @@ PiloController::GetLinkState (void)
 
       Ptr<Packet> p = Create<Packet> ((uint8_t*)(&request), sizeof(pilo_gossip_request));
     
-      if ((m_socket->SendPiloMessage(m_targetNode, GossipRequest, p)) >= 0) {
-        ++m_sent;
-        NS_LOG_INFO ("Sent gossip message to node " << m_targetNode);
+      if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
+        //++m_sent;
+        NS_LOG_INFO ("Sent gossip message to all controller nodes" );
       }
     }
 
     // reschedule itself
-    if (counter < 10) {
-      Simulator::Schedule (Seconds(1), &PiloController::CtlGossip, this);
-      counter++;
+    if (gossip_send_counter < 10) {
+      Simulator::Schedule (Seconds(5), &PiloController::CtlGossip, this);
+      gossip_send_counter++;
     }
   }
 

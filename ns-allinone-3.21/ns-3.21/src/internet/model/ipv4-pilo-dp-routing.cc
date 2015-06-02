@@ -193,6 +193,7 @@ Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
 
 void
 Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
+  NS_LOG_LOGIC("Link is down");
   // change the state here
   Ptr<NetDevice> dev = m_ipv4->GetNetDevice(iface);
   Ptr<Channel> chan = dev->GetChannel();
@@ -211,6 +212,8 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
       if (current_state.state) {
         (*link_states)[link_id].event_id = (*link_states)[link_id].event_id + 1;
         (*link_states)[link_id].state = false;
+
+        NS_LOG_LOGIC("Link down between switch " << switch_id0 << " and switch " << switch_id1);
       }
     }
   }
@@ -260,7 +263,7 @@ Ipv4PiloDPRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const {
 
 void 
 Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt) {
-  NS_LOG_FUNCTION (this << hdr << pkt);
+  //NS_LOG_FUNCTION (this << hdr << pkt);
   switch(hdr.GetType()) {
     case NOP:
       NS_LOG_LOGIC ("Received NOP");
@@ -313,28 +316,28 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
     default:
       break;
   };
-}
 
+}
 // Called when a PILO control packet is received over the control connection.
 void 
 Ipv4PiloDPRouting::HandleRead (Ptr<Socket> socket) {
-  NS_LOG_FUNCTION (this << socket);
+  //NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
   Address from;
   PiloHeader piloHeader;
   while ((packet = socket->RecvFrom (from))) {
-    NS_LOG_LOGIC("HandleRead packet " << packet->GetSize());
+    //NS_LOG_LOGIC("HandleRead packet " << packet->GetSize());
     if (packet->GetSize() > 0) {
       packet->RemoveHeader(piloHeader);
-      NS_LOG_LOGIC("Processing actual PILO packet " << piloHeader);
+      //NS_LOG_LOGIC("Processing actual PILO packet " << piloHeader);
       if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES ||
           piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
         HandlePiloControlPacket(piloHeader, packet);
       } else {
-        NS_LOG_LOGIC ("Ignoring PILO packet not intended for me.");
+        //NS_LOG_LOGIC ("Ignoring PILO packet not intended for me.");
       }
     } else {
-      NS_LOG_LOGIC("Zero-size control packet");
+      //NS_LOG_LOGIC("Zero-size control packet");
     }
   }
 }
