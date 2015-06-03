@@ -289,6 +289,9 @@ main (int argc, char *argv[])
   apps.Start (Seconds (2.0));
   apps.Stop (Seconds (700.0));
 
+  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+
   // partition the network
   Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
@@ -305,7 +308,7 @@ main (int argc, char *argv[])
   Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
   Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
 
-  Simulator::Schedule(Seconds(11), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+  Simulator::Schedule(Seconds(30), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   /************ END PILO CONTROLLER TEST ************/
 
