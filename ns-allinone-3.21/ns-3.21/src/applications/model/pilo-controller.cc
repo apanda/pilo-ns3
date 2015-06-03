@@ -255,74 +255,142 @@ PiloController::GetLinkState (void)
               NS_LOG_LOGIC("Received EchoAck from " << piloHdr.GetSourceNode());
               NS_ASSERT(piloHdr.GetTargetNode() == GetNode()->GetId());
             } else if (piloHdr.GetType() == GossipRequest) {
-              NS_LOG_LOGIC("Received gossip request message from " << piloHdr.GetSourceNode());
+              // NS_LOG_LOGIC("Received gossip request message from " << piloHdr.GetSourceNode());
 
-              // needs to reply to the source with the correct messages
-              pilo_gossip_request request;
-              packet->CopyData((uint8_t *) &request, packet->GetSize());
+              // // needs to reply to the source with the correct messages
+              // pilo_gossip_request request;
+              // packet->CopyData((uint8_t *) &request, packet->GetSize());
 
-              NS_LOG_INFO("Needs to get log information for switch_id " << request.switch_id << 
-                          ", link_id " << request.link_id << ", event_id range (" << request.low_event_id <<
-                          ", " << request.high_event_id << ")");
+              // NS_LOG_INFO("Needs to get log information for switch_id " << request.switch_id << 
+              //             ", link_id " << request.link_id << ", event_id range (" << request.low_event_id <<
+              //             ", " << request.high_event_id << ")");
 
-              std::map<uint64_t, bool> *result = new std::map<uint64_t, bool>();
-              log->get_events_within_gap(request.switch_id, request.link_id, 
-                                         request.low_event_id, request.high_event_id, result);
+              // std::map<uint64_t, bool> *result = new std::map<uint64_t, bool>();
+              // log->get_events_within_gap(request.switch_id, request.link_id, 
+              //                            request.low_event_id, request.high_event_id, result);
               
-              if (result->size() == 0)
+              // if (result->size() == 0)
+              //   return;
+
+              // std::map<uint64_t, bool>::iterator it = result->begin();
+              // std::map<uint64_t, bool>::iterator it_end = result->end();
+
+              // const size_t total_size = (const size_t) sizeof(pilo_gossip_reply_single) * result->size() +
+              //   sizeof(pilo_gossip_reply_header);
+
+              // uint8_t buf[total_size];
+
+              // pilo_gossip_reply_header *h = (pilo_gossip_reply_header *) buf;
+              // h->switch_id = request.switch_id;
+              // h->link_id = request.link_id;
+
+              // int count = 0;
+              // for (; it != it_end; it++) {
+              //   pilo_gossip_reply_single *reply = (pilo_gossip_reply_single *) (buf + sizeof(pilo_gossip_reply_header)
+              //                                                                   + count * sizeof(pilo_gossip_reply_single));
+              //   reply->event_id = it->first;
+              //   reply->state = it->second;
+              //   NS_LOG_LOGIC("Switch " << request.switch_id << " has event " << reply->event_id << ", state " << reply->state);
+              //   ++count;
+              // }
+
+              // if (count > 0) {
+              //   Ptr<Packet> p = Create<Packet>(buf, total_size);
+              //   if ((m_socket->SendPiloMessage(piloHdr.GetSourceNode(), GossipReply, p)) >= 0) {
+              //     ++m_sent;
+              //     NS_LOG_INFO ("Sent gossip message to node " << piloHdr.GetSourceNode());
+              //   }
+              // }
+
+              // delete result;
+
+              // find the difference between the two sets
+              ControllerState *copy = new ControllerState();
+              const size_t size = (const size_t) packet->GetSize();
+              if (size == 0) {
                 return;
-
-              std::map<uint64_t, bool>::iterator it = result->begin();
-              std::map<uint64_t, bool>::iterator it_end = result->end();
-
-              const size_t total_size = (const size_t) sizeof(pilo_gossip_reply_single) * result->size() + \
-                sizeof(pilo_gossip_reply_header);
-
-              uint8_t buf[total_size];
-
-              pilo_gossip_reply_header *h = (pilo_gossip_reply_header *) buf;
-              h->switch_id = request.switch_id;
-              h->link_id = request.link_id;
-
-              int count = 0;
-              for (; it != it_end; it++) {
-                pilo_gossip_reply_single *reply = (pilo_gossip_reply_single *) (buf + sizeof(pilo_gossip_reply_header) \
-                                                                                + count * sizeof(pilo_gossip_reply_single));
-                reply->event_id = it->first;
-                reply->state = it->second;
-                NS_LOG_LOGIC("Switch " << request.switch_id << " has event " << reply->event_id << ", state " << reply->state);
-                ++count;
               }
 
-              if (count > 0) {
-                Ptr<Packet> p = Create<Packet>(buf, total_size);
-                if ((m_socket->SendPiloMessage(piloHdr.GetSourceNode(), GossipReply, p)) >= 0) {
-                  ++m_sent;
-                  NS_LOG_INFO ("Sent gossip message to node " << piloHdr.GetSourceNode());
+              uint8_t buf[size];
+              packet->CopyData(buf, packet->GetSize());
+              
+              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " receives GossipRequest");
+
+              int counter = 0;
+              while (counter * sizeof(LinkEvent) < packet->GetSize()) {
+                LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
+
+                NS_LOG_LOGIC("switch_id: " << e->switch_id  << ", link id: " << e->link_id << ", event_id: " << e->event_id << ", state: " << e->state);
+
+                copy->put_event(e->switch_id, e->link_id, e->event_id, e->state);
+                if (!log->event_in_log(e)) {
+                  log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
+                }
+                counter++;
+              }
+
+              if (log->num_link_events() == 0) {
+                return;
+              }
+              
+              counter = 0;
+
+              log->reset_event_iterator();
+              while (true) {
+                LinkEvent *e = log->get_next_event();
+                if (e == NULL) {
+                  break;
+                }
+
+                if (!copy->event_in_log(e)) {
+                  LinkEvent *e_ = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
+                  e_->switch_id = e->switch_id;
+                  e_->link_id = e->link_id;
+                  e_->event_id = e->event_id;
+                  e_->state = e->state;
+                  counter++;
                 }
               }
 
-              delete result;
+              Ptr<Packet> p = Create<Packet> (buf, counter * sizeof(LinkEvent));
+              if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipReply, p)) >= 0) {
+                NS_LOG_INFO ("Sent gossip message to all controller nodes" );
+              }
+
+              delete copy;
 
             } else if (piloHdr.GetType() == GossipReply) {
-              NS_LOG_LOGIC("Received gossip reply message from " << piloHdr.GetSourceNode());
+              // NS_LOG_LOGIC("Received gossip reply message from " << piloHdr.GetSourceNode());
+
+              // const size_t size = (const size_t) packet->GetSize();
+              // uint8_t buf[size];
+              // packet->CopyData(buf, packet->GetSize());
+
+              // pilo_gossip_reply_header *h = (pilo_gossip_reply_header *) buf;
+              // uint32_t switch_id = h->switch_id;
+              // uint64_t link_id = h->link_id;
+
+              // NS_LOG_LOGIC("Received Gossip Reply information about switch_id " << switch_id << " and link_id " << link_id);
+              // int count = 0;
+              // while (sizeof(pilo_gossip_reply_header) + count * sizeof(pilo_gossip_reply_single) < size) {
+              //   pilo_gossip_reply_single *reply = (pilo_gossip_reply_single *) (buf + sizeof(pilo_gossip_reply_header) + 
+              //                                                                   count * sizeof(pilo_gossip_reply_single));
+              //   NS_LOG_LOGIC("Received reply "<< count << " with event_id " << reply->event_id << ", link status " << reply->state);
+              //   log->put_event(h->switch_id, h->link_id, reply->event_id, reply->state);
+              //   ++count;
+              // }
 
               const size_t size = (const size_t) packet->GetSize();
               uint8_t buf[size];
               packet->CopyData(buf, packet->GetSize());
-
-              pilo_gossip_reply_header *h = (pilo_gossip_reply_header *) buf;
-              uint32_t switch_id = h->switch_id;
-              uint64_t link_id = h->link_id;
-
-              NS_LOG_LOGIC("Received Gossip Reply information about switch_id " << switch_id << " and link_id " << link_id);
-              int count = 0;
-              while (sizeof(pilo_gossip_reply_header) + count * sizeof(pilo_gossip_reply_single) < size) {
-                pilo_gossip_reply_single *reply = (pilo_gossip_reply_single *) (buf + sizeof(pilo_gossip_reply_header) + \
-                                                                                count * sizeof(pilo_gossip_reply_single));
-                NS_LOG_LOGIC("Received reply "<< count << " with event_id " << reply->event_id << ", link status " << reply->state);
-                log->put_event(h->switch_id, h->link_id, reply->event_id, reply->state);
-                ++count;
+              
+              int counter = 0;
+              while (counter * sizeof(LinkEvent) < packet->GetSize()) {
+                LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
+                if (!log->event_in_log(e)) {
+                  log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
+                }
+                counter++;
               }
 
             } else if (piloHdr.GetType() == LinkStateReply) {
@@ -347,75 +415,111 @@ PiloController::GetLinkState (void)
       }
   }
 
-  // the controller will periodically ask other controllers to give it information
   void PiloController::CtlGossip(void) {
-    //NS_LOG_FUNCTION (this);
-    NS_ASSERT (m_sendEvent.IsExpired ());
+    // send over a list of existing link events
 
-    // request other controllers for link state information for a single switch
-    // the format is 8 bytes for switch id, 8 bytes for continguous 
+    NS_LOG_INFO("Server " << GetNode()->GetId() << " gossip request scheduled");
+    const size_t total_size = (const size_t) log->num_link_events() * sizeof(LinkEvent);
+    uint8_t buf[total_size];
+    int counter = 0;
 
-    ControllerState::LinkIterator it = log->link_begin();
+    log->reset_event_iterator();
 
-    for (; it != log->link_end(); it++) {
-      uint64_t link_id = *it;
-      uint32_t s0 = ControllerState::GetSwitch0(link_id);
-      uint32_t s1 = ControllerState::GetSwitch0(link_id);
+    while (true) {
+      LinkEvent *e_ = log->get_next_event();
+      if (e_ == NULL)
+        break;
 
-      uint64_t low_event_id = 0;
-      uint64_t high_event_id = 0;
-
-      if (log->get_event_gap(s0, link_id, &low_event_id, &high_event_id)) {
-        NS_LOG_INFO("Server " << GetNode()->GetId() << " Gossip event log gaps found for switch " << s0 << " and link " << link_id);
-
-        pilo_gossip_request request;
-        request.switch_id = s0;
-        request.link_id = link_id;
-        request.low_event_id = low_event_id;
-        request.high_event_id = high_event_id;
-
-        Ptr<Packet> p = Create<Packet> ((uint8_t*)(&request), sizeof(pilo_gossip_request));
-    
-        if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
-          //++m_sent;
-          NS_LOG_INFO ("Sent gossip message to all controller nodes" );
-        }
-      }
-
-      if (log->get_event_gap(s1, link_id, &low_event_id, &high_event_id)) {
-        NS_LOG_INFO("Server " << GetNode()->GetId() << "Gossip event log gaps found for switch " << s1 << " and link " << link_id);
-
-        pilo_gossip_request request;
-        request.switch_id = s1;
-        request.link_id = link_id;
-        request.low_event_id = low_event_id;
-        request.high_event_id = high_event_id;
-
-        Ptr<Packet> p = Create<Packet> ((uint8_t*)(&request), sizeof(pilo_gossip_request));
-    
-        if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
-          //++m_sent;
-          NS_LOG_INFO ("Sent gossip message to all controller nodes" );
-        }
-      }
-      
+      LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
+      e->switch_id = e_->switch_id;
+      e->link_id = e_->link_id;
+      e->event_id = e_->event_id;
+      e->state = e_->state;
+      counter++;
     }
-   
+
+    Ptr<Packet> p = Create<Packet> (buf, total_size);
+    if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
+      NS_LOG_INFO ("Sent gossip message to all controller nodes" );
+    }
+
     // reschedule itself
     if (gossip_send_counter < max_counter) {
       Simulator::Schedule (Seconds(5), &PiloController::CtlGossip, this);
       gossip_send_counter++;
     }
+        
   }
+
+  // // the controller will periodically ask other controllers to give it information
+  // void PiloController::CtlGossip(void) {
+  //   //NS_LOG_FUNCTION (this);
+  //   NS_ASSERT (m_sendEvent.IsExpired ());
+
+  //   // request other controllers for link state information for a single switch
+  //   // the format is 8 bytes for switch id, 8 bytes for continguous 
+
+  //   ControllerState::LinkIterator it = log->link_begin();
+
+  //   for (; it != log->link_end(); it++) {
+  //     uint64_t link_id = *it;
+  //     uint32_t s0 = ControllerState::GetSwitch0(link_id);
+  //     uint32_t s1 = ControllerState::GetSwitch0(link_id);
+
+  //     uint64_t low_event_id = 0;
+  //     uint64_t high_event_id = 0;
+
+  //     if (log->get_event_gap(s0, link_id, &low_event_id, &high_event_id)) {
+  //       NS_LOG_INFO("Server " << GetNode()->GetId() << " Gossip event log gaps found for switch " << s0 << " and link " << link_id);
+
+  //       pilo_gossip_request request;
+  //       request.switch_id = s0;
+  //       request.link_id = link_id;
+  //       request.low_event_id = low_event_id;
+  //       request.high_event_id = high_event_id;
+
+  //       Ptr<Packet> p = Create<Packet> ((uint8_t*)(&request), sizeof(pilo_gossip_request));
+    
+  //       if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
+  //         //++m_sent;
+  //         NS_LOG_INFO ("Sent gossip message to all controller nodes" );
+  //       }
+  //     }
+
+  //     if (log->get_event_gap(s1, link_id, &low_event_id, &high_event_id)) {
+  //       NS_LOG_INFO("Server " << GetNode()->GetId() << "Gossip event log gaps found for switch " << s1 << " and link " << link_id);
+
+  //       pilo_gossip_request request;
+  //       request.switch_id = s1;
+  //       request.link_id = link_id;
+  //       request.low_event_id = low_event_id;
+  //       request.high_event_id = high_event_id;
+
+  //       Ptr<Packet> p = Create<Packet> ((uint8_t*)(&request), sizeof(pilo_gossip_request));
+    
+  //       if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
+  //         //++m_sent;
+  //         NS_LOG_INFO ("Sent gossip message to all controller nodes" );
+  //       }
+  //     }
+      
+  //   }
+   
+  //   // reschedule itself
+  //   if (gossip_send_counter < max_counter) {
+  //     Simulator::Schedule (Seconds(5), &PiloController::CtlGossip, this);
+  //     gossip_send_counter++;
+  //   }
+  // }
 
 
   // DEBUG 
   void PiloController::CurrentLog(void) {
-    log->reset_iterator();
+    log->reset_event_iterator();
 
     NS_LOG_LOGIC("Server " << GetNode()->GetId() << " current log: ");
     while (true) {
-      LinkEvent *e = log->get_next();
+      LinkEvent *e = log->get_next_event();
       if (e == NULL) 
         break;
 

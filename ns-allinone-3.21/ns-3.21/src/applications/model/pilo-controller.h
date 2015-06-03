@@ -142,11 +142,15 @@ namespace ns3 {
       links->insert(e->link_id);
     }
 
-    void reset_iterator() {
+    void reset_event_iterator() {
       it = log->begin();
     }
 
-    LinkEvent* get_next() {
+    void reset_link_iterator() {
+      it_link = links->begin();
+    }
+
+    LinkEvent* get_next_event() {
       if (it == log->end())
         return NULL;
       LinkEvent *e = *it;
@@ -154,20 +158,12 @@ namespace ns3 {
       return e;
     }
 
-    LinkEventIterator link_event_begin() {
-      return log->begin();
-    }
-
-    LinkEventIterator link_event_end() {
-      return log->end();
-    }
-
-    LinkIterator link_begin() {
-      return links->begin();
-    }
-
-    LinkIterator link_end() {
-      return links->end();
+    bool get_next_link(uint64_t *ret) {
+      if (it_link == links->end())
+        return false;
+      *ret = *it_link;
+      it_link++;
+      return true;
     }
 
     static uint32_t GetSwitch0(uint64_t link_id) {
@@ -182,8 +178,17 @@ namespace ns3 {
       return *ptr1;
     }
 
+    size_t num_link_events() {
+      return log->size();
+    }
+
+    bool event_in_log(LinkEvent *e) {
+      return (log->find(e) != log->end());
+    }
+
     std::set<LinkEvent *, SortLinkEvent> *log;
     std::set<LinkEvent *, SortLinkEvent>::iterator it;
+    std::set<uint64_t>::iterator it_link;
 
     std::set<uint64_t> *links; // a list of link ids
   };
