@@ -73,7 +73,10 @@ namespace ns3 {
   class ControllerState {
   public:
     typedef std::set<uint64_t>::iterator LinkIterator;
+    typedef std::set<uint64_t>::reverse_iterator LinkReverseIterator;
+
     typedef std::set<LinkEvent *, SortLinkEvent>::iterator LinkEventIterator;
+    typedef std::set<LinkEvent *, SortLinkEvent>::reverse_iterator LinkEventReverseIterator;
 
     ControllerState() {
       log = new std::set<LinkEvent *, SortLinkEvent>();
@@ -186,6 +189,68 @@ namespace ns3 {
       return (log->find(e) != log->end());
     }
 
+    bool event_in_log(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state) {
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_start_ = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end_ = log->end();
+
+      for (; it_start_ != it_end_; it_start_++) {
+        if ((*it_start_)->switch_id == switch_id && 
+            (*it_start_)->link_id == link_id && 
+            (*it_start_)->event_id == event_id) {
+          NS_ASSERT((*it_start_)->state == state);
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    LinkEventIterator link_event_begin() {
+      return log->begin();
+    }
+
+    LinkEventIterator link_event_end() {
+      return log->end();
+    }
+
+    LinkEventReverseIterator link_event_rbegin() {
+      return log->rbegin();
+    }
+
+    LinkEventReverseIterator link_event_rend() {
+      return log->rend();
+    }
+
+    void delete_link_event(LinkEventReverseIterator r_it) {
+      LinkEvent *e = *(r_it.base());
+      log->erase(r_it.base());
+      delete e;
+    }
+
+    void delete_link_event(LinkEventIterator it) {
+      LinkEvent *e = *it;
+      log->erase(it);
+      delete e;
+    }
+
+    void delete_link_event(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state) {
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_start_ = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end_ = log->end();
+
+      for (; it_start_ != it_end_; it_start_++) {
+        if ((*it_start_)->switch_id == switch_id && 
+            (*it_start_)->link_id == link_id && 
+            (*it_start_)->event_id == event_id) {
+     
+          LinkEvent *e = *it_start_;
+          log->erase(it_start_);
+          delete e;
+          return;
+        }
+      }
+
+    }
+
     std::set<LinkEvent *, SortLinkEvent> *log;
     std::set<LinkEvent *, SortLinkEvent>::iterator it;
     std::set<uint64_t>::iterator it_link;
@@ -255,6 +320,7 @@ public:
   void CtlGossip(void);
   void GetLinkState(void);
   void CurrentLog(void);
+  void GarbageCollect(void);
 
 protected:
   virtual void DoDispose (void);
@@ -286,6 +352,9 @@ private:
   int gossip_send_counter;
   int link_state_send_counter;
   int max_counter;
+
+  static const int gc = 4;
+  static const int final_time = 200;
 };
 
 } // namespace ns3

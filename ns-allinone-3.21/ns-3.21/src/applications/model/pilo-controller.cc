@@ -157,9 +157,11 @@ PiloController::StartApplication (void)
   // periodically query for link states from switches
   m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloController::GetLinkState, this);
   // start gossiping
-  m_sendEvent = Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
+  Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
+  // start gc
+  Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
 
-  Simulator::Schedule(Seconds(150), &PiloController::CurrentLog, this);
+  Simulator::Schedule(Seconds(final_time+5), &PiloController::CurrentLog, this);
 }
 
 void
@@ -274,7 +276,7 @@ PiloController::GetLinkState (void)
                 NS_LOG_LOGIC("switch_id: " << e->switch_id  << ", link id: " << e->link_id << ", event_id: " << e->event_id << ", state: " << e->state);
 
                 copy->put_event(e->switch_id, e->link_id, e->event_id, e->state);
-                if (!log->event_in_log(e)) {
+                if (!log->event_in_log(e->switch_id, e->link_id, e->event_id, e->state)) {
                   log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
                 }
                 counter++;
@@ -286,6 +288,8 @@ PiloController::GetLinkState (void)
               
               counter = 0;
 
+              uint8_t *ret_buf = (uint8_t *) malloc(sizeof(LinkEvent) * log->num_link_events());
+
               log->reset_event_iterator();
               while (true) {
                 LinkEvent *e = log->get_next_event();
@@ -293,8 +297,8 @@ PiloController::GetLinkState (void)
                   break;
                 }
 
-                if (!copy->event_in_log(e)) {
-                  LinkEvent *e_ = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
+                if (!copy->event_in_log(e->switch_id, e->link_id, e->event_id, e->state)) {
+                  LinkEvent *e_ = (LinkEvent *) (ret_buf + counter * sizeof(LinkEvent));
                   e_->switch_id = e->switch_id;
                   e_->link_id = e->link_id;
                   e_->event_id = e->event_id;
@@ -303,12 +307,13 @@ PiloController::GetLinkState (void)
                 }
               }
 
-              Ptr<Packet> p = Create<Packet> (buf, counter * sizeof(LinkEvent));
+              Ptr<Packet> p = Create<Packet> (ret_buf, counter * sizeof(LinkEvent));
               if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipReply, p)) >= 0) {
                 NS_LOG_INFO ("Sent gossip message to all controller nodes" );
               }
 
               delete copy;
+              delete ret_buf;
 
             } else if (piloHdr.GetType() == GossipReply) {
 
@@ -319,7 +324,7 @@ PiloController::GetLinkState (void)
               int counter = 0;
               while (counter * sizeof(LinkEvent) < packet->GetSize()) {
                 LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
-                if (!log->event_in_log(e)) {
+                if (!log->event_in_log(e->switch_id, e->link_id, e->event_id, e->state)) {
                   log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
                 }
                 counter++;
@@ -376,11 +381,103 @@ PiloController::GetLinkState (void)
     }
 
     // reschedule itself
-    if (gossip_send_counter < max_counter) {
-      Simulator::Schedule (Seconds(5), &PiloController::CtlGossip, this);
+    if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
+      Simulator::Schedule (Seconds(1), &PiloController::CtlGossip, this);
       gossip_send_counter++;
     }
         
+  }
+
+  void PiloController::GarbageCollect(void) {
+    // this function is run periodically to garbage collect the log records to only keep the most recent X number of
+    // link events for a given (switch, link_id) pair
+
+    // iterate through all of the events and delete old log records
+    // TODO: this is currently super inefficient
+
+    log->reset_link_iterator();
+    uint64_t link_id = 0;
+    while (true) {
+      if (!log->get_next_link(&link_id)) {
+        break;
+      }
+
+      // switch0
+      uint32_t s0 = ControllerState::GetSwitch0(link_id);
+      ControllerState::LinkEventReverseIterator r_it = log->link_event_rbegin();
+      ControllerState::LinkEventReverseIterator r_it_end = log->link_event_rend();
+      int counter = 0;
+
+      for (; r_it != r_it_end; r_it++) {
+        LinkEvent *e = *r_it;
+        if (e->switch_id == s0 && e->link_id == link_id) {
+          ++counter;
+          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " iterate switch: " << s0 << " event_id: " << e->event_id);
+          if (counter == PiloController::gc) {
+            break;
+          }
+        }
+      }
+
+      // delete the log entries from reverse iterator
+      std::vector<LinkEvent *> deletes;
+      for (; r_it != r_it_end; r_it++) {
+        LinkEvent *e = *r_it;
+        if (e->switch_id == s0 && e->link_id == link_id) {
+          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " deleting " << (*r_it)->switch_id << ", " << (*r_it)->link_id << ", " <<
+                       (*r_it)->event_id);
+          deletes.push_back(e);
+        }
+      }
+
+      for (size_t i = 0; i < deletes.size(); i++) {
+        LinkEvent *e = deletes[i];
+        log->delete_link_event(e->switch_id, e->link_id, e->event_id, e->state);
+      }
+
+      // switch1
+      uint32_t s1 = ControllerState::GetSwitch1(link_id);
+      r_it = log->link_event_rbegin();
+      r_it_end = log->link_event_rend();
+      counter = 0;
+
+      for (; r_it != r_it_end; r_it++) {
+        LinkEvent *e = *r_it;
+        if (e->switch_id == s1 && e->link_id == link_id) {
+          ++counter;
+          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " iterate switch: " << s1 << " event_id: " << e->event_id);
+          if (counter == PiloController::gc) {
+            break;
+          }
+        }
+      }
+
+      // delete the log entries from reverse iterator
+      deletes.clear();
+      for (; r_it != r_it_end; r_it++) {
+        LinkEvent *e = *r_it;
+        if (e->switch_id == s1 && e->link_id == link_id) {
+          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " deleting " << (*r_it)->switch_id << ", " << (*r_it)->link_id << ", " <<
+                       (*r_it)->event_id);
+          deletes.push_back(e);
+        }
+      }
+
+      for (size_t i = 0; i < deletes.size(); i++) {
+        LinkEvent *e = deletes[i];
+        log->delete_link_event(e->switch_id, e->link_id, e->event_id, e->state);
+      }
+
+    }
+
+    // // DEBUG CHECK
+    // CurrentLog();
+
+    // reschedule itself
+    if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
+      Simulator::Schedule (Seconds(1), &PiloController::GarbageCollect, this);
+      gossip_send_counter++;
+    }
   }
 
   // DEBUG 

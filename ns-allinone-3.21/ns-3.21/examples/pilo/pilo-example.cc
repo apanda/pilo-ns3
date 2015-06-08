@@ -296,19 +296,15 @@ main (int argc, char *argv[])
   Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   // fail and recover links
-  Simulator::Schedule(Seconds(7), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-  Simulator::Schedule(Seconds(7), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+  for (int i = 0; i < 29; i++) {
+    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+    
+    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+  }
 
-  Simulator::Schedule(Seconds(8), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-  Simulator::Schedule(Seconds(8), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
-
-  Simulator::Schedule(Seconds(9), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-  Simulator::Schedule(Seconds(9), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
-
-  Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-  Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
-
-  Simulator::Schedule(Seconds(30), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+  Simulator::Schedule(Seconds(60), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   /************ END PILO CONTROLLER TEST ************/
 
