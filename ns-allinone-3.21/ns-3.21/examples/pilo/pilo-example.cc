@@ -296,7 +296,7 @@ main (int argc, char *argv[])
   Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   // fail and recover links
-  for (int i = 0; i < 29; i++) {
+  for (int i = 0; i < 20; i++) {
     Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
     Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
     

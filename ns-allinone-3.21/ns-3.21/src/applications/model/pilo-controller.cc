@@ -235,7 +235,7 @@ PiloController::GetLinkState (void)
     }
 
   // reschedule itself
-  if (link_state_send_counter < max_counter * 13) {
+  if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
     Simulator::Schedule (Seconds(0.5), &PiloController::GetLinkState, this);
     link_state_send_counter++;
   }

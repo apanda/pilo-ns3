@@ -353,7 +353,7 @@ private:
   int link_state_send_counter;
   int max_counter;
 
-  static const int gc = 4;
+  static const int gc = 10;
   static const int final_time = 200;
 };
 
