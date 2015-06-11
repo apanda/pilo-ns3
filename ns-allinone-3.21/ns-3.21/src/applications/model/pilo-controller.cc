@@ -257,78 +257,100 @@ PiloController::GetLinkState (void)
               NS_LOG_LOGIC("Received EchoAck from " << piloHdr.GetSourceNode());
               NS_ASSERT(piloHdr.GetTargetNode() == GetNode()->GetId());
             } else if (piloHdr.GetType() == GossipRequest) {
-              // find the difference between the two sets
-              ControllerState *copy = new ControllerState();
-              const size_t size = (const size_t) packet->GetSize();
-              if (size == 0) {
-                return;
-              }
+              std::set<LinkEvent *, SortLinkEvent> *result = new std::set<LinkEvent *, SortLinkEvent>();
 
-              uint8_t buf[size];
+              uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
               packet->CopyData(buf, packet->GetSize());
+
+              uint8_t *buf_ptr = buf;
               
-              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " receives GossipRequest");
-
-              int counter = 0;
-              while (counter * sizeof(LinkEvent) < packet->GetSize()) {
-                LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
-
-                NS_LOG_LOGIC("switch_id: " << e->switch_id  << ", link id: " << e->link_id << ", event_id: " << e->event_id << ", state: " << e->state);
-
-                copy->put_event(e->switch_id, e->link_id, e->event_id, e->state);
-                if (!log->event_in_log(e->switch_id, e->link_id, e->event_id, e->state)) {
-                  log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
-                }
-                counter++;
-              }
-
-              if (log->num_link_events() == 0) {
-                return;
-              }
+              size_t total_bytes = 0;
               
-              counter = 0;
+              // iterate through event gaps
+              while (total_bytes < packet->GetSize()) {
 
-              uint8_t *ret_buf = (uint8_t *) malloc(sizeof(LinkEvent) * log->num_link_events());
+                uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
+                uint32_t switch_id = *switch_id_ptr;
+                buf_ptr += sizeof(uint32_t);
 
-              log->reset_event_iterator();
-              while (true) {
-                LinkEvent *e = log->get_next_event();
-                if (e == NULL) {
-                  break;
-                }
+                uint64_t *link_id_ptr = (uint64_t *) buf_ptr;
+                uint64_t link_id = *link_id_ptr;
+                buf_ptr += sizeof(uint64_t);
 
-                if (!copy->event_in_log(e->switch_id, e->link_id, e->event_id, e->state)) {
-                  LinkEvent *e_ = (LinkEvent *) (ret_buf + counter * sizeof(LinkEvent));
-                  e_->switch_id = e->switch_id;
-                  e_->link_id = e->link_id;
-                  e_->event_id = e->event_id;
-                  e_->state = e->state;
-                  counter++;
+                uint32_t *num_events_ptr = (uint32_t *) buf_ptr;
+                uint32_t num_events = *num_events_ptr;
+                buf_ptr += sizeof(uint32_t);
+
+                // NS_LOG_LOGIC("[GossipReply] Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id
+                //              << " has " << num_events << " events");
+
+                total_bytes += sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint32_t);
+
+                for (uint32_t i = 0; i < num_events; i++) {
+                  uint64_t *event_id0_ptr = (uint64_t *) buf_ptr;
+                  uint64_t event_id0 = *event_id0_ptr;
+                  buf_ptr += sizeof(uint64_t);
+                  total_bytes += sizeof(uint64_t);
+                
+                  uint64_t *event_id1_ptr = (uint64_t *) buf_ptr;
+                  uint64_t event_id1 = *event_id1_ptr;
+                  buf_ptr += sizeof(uint64_t);
+                  total_bytes += sizeof(uint64_t);
+
+                  //NS_LOG_LOGIC("[GossipReply] Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id << ", found gap [" << event_id0 << ", " << event_id1 << "]");
+                
+                  if (event_id0 == event_id1) {
+                    log->get_greater_events(switch_id, link_id, event_id0, result);
+                  } else {
+                    log->get_events_within_gap(switch_id, link_id, event_id0, event_id1, result);
+                  }
                 }
               }
 
-              Ptr<Packet> p = Create<Packet> (ret_buf, counter * sizeof(LinkEvent));
+              // TODO: send over the result
+              size_t msg_size = sizeof(LinkEvent) * result->size();
+              uint8_t * msg_buf = (uint8_t *) malloc(msg_size);
+              uint8_t *msg_buf_ptr = msg_buf;
+
+              std::set<LinkEvent *, SortLinkEvent>::iterator it = result->begin();
+              std::set<LinkEvent *, SortLinkEvent>::iterator it_end = result->end();
+
+              for (; it != it_end; it++) {
+                LinkEvent *e = *it;
+                LinkEvent *e_ = (LinkEvent *) msg_buf_ptr;
+                e_->switch_id = e->switch_id;
+                e_->link_id = e->link_id;
+                e_->event_id = e->event_id;
+                e_->state = e->state;
+                //NS_LOG_LOGIC("[GossipReply] Server " << GetNode()->GetId() << " sends over switch " << e->switch_id << ", link " << e->link_id << ", event_id " << e->event_id );
+                msg_buf_ptr += sizeof(LinkEvent);
+              }
+
+              Ptr<Packet> p = Create<Packet> (msg_buf, msg_size);
               if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipReply, p)) >= 0) {
                 NS_LOG_INFO ("Sent gossip message to all controller nodes" );
               }
-
-              delete copy;
-              delete ret_buf;
+              
+              delete result;
+              free(buf);
+              free(msg_buf);
 
             } else if (piloHdr.GetType() == GossipReply) {
 
-              const size_t size = (const size_t) packet->GetSize();
-              uint8_t buf[size];
+              uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
               packet->CopyData(buf, packet->GetSize());
               
-              int counter = 0;
-              while (counter * sizeof(LinkEvent) < packet->GetSize()) {
-                LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
-                if (!log->event_in_log(e->switch_id, e->link_id, e->event_id, e->state)) {
-                  log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
-                }
-                counter++;
+              size_t total_size = 0;
+
+              while (total_size < packet->GetSize()) {
+                LinkEvent *e = (LinkEvent *) (buf + total_size);
+                log->put_event(e->switch_id, e->link_id, e->event_id, e->state);
+                
+                //NS_LOG_LOGIC("[GossipReply Final] Server " << GetNode()->GetId() << " puts new event: switch " << e->switch_id << ", link " << e->link_id << ", event_id " << e->event_id );
+                total_size += sizeof(LinkEvent);
               }
+
+              free(buf);
 
             } else if (piloHdr.GetType() == LinkStateReply) {
               //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
@@ -352,34 +374,112 @@ PiloController::GetLinkState (void)
       }
   }
 
-  void PiloController::CtlGossip(void) {
-    // send over a list of existing link events
+  size_t PiloController::CtlGossipHelper(uint32_t switch_id, uint64_t link_id, uint8_t *buf) {
 
-    NS_LOG_INFO("Server " << GetNode()->GetId() << " gossip request scheduled");
-    const size_t total_size = (const size_t) log->num_link_events() * sizeof(LinkEvent);
-    uint8_t buf[total_size];
-    int counter = 0;
+    ControllerState::LinkEventIterator event_it = log->link_event_begin();
+    ControllerState::LinkEventIterator event_it_end = log->link_event_end();
 
-    log->reset_event_iterator();
+    uint8_t *buf_ptr = buf;
+    uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
+    *switch_id_ptr = switch_id;
+    buf_ptr += sizeof(switch_id);
 
-    while (true) {
-      LinkEvent *e_ = log->get_next_event();
-      if (e_ == NULL)
+    uint64_t *link_id_ptr = (uint64_t *) buf_ptr;
+    *link_id_ptr = link_id;
+    buf_ptr += sizeof(link_id);
+
+    uint32_t *num_events = (uint32_t *) buf_ptr;
+    *num_events = 0;
+    buf_ptr += sizeof(uint32_t);
+
+    uint64_t counter = 0;
+    for (; event_it != event_it_end; event_it++) {     
+      LinkEvent *e = *event_it;
+      if (e->switch_id == switch_id && e->link_id == link_id) {
+        counter = e->event_id;
         break;
-
-      LinkEvent *e = (LinkEvent *) (buf + counter * sizeof(LinkEvent));
-      e->switch_id = e_->switch_id;
-      e->link_id = e_->link_id;
-      e->event_id = e_->event_id;
-      e->state = e_->state;
-      counter++;
+      }
     }
 
-    Ptr<Packet> p = Create<Packet> (buf, total_size);
+    event_it = log->link_event_begin();
+    for (; event_it != event_it_end; event_it++) {
+      LinkEvent *e = *event_it;
+      if (e->switch_id == switch_id && e->link_id == link_id) {
+        // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " link event: switch " << switch_id << ", link " << 
+        //              link_id << ", event " << e->event_id);
+
+        if (counter < e->event_id -1 && e->event_id > 0) {
+          // there's a gap, put gap information in the buffer
+          uint64_t *p = (uint64_t *) buf_ptr;
+          *p = counter;
+          buf_ptr += sizeof(counter);
+          
+          p = (uint64_t *) buf_ptr;
+          *p = e->event_id;
+          buf_ptr += sizeof(e->event_id);
+          // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id <<
+          //              " event gap: [" << counter << ", " << e->event_id << "]");
+          *num_events = *num_events + 1;
+        }
+        counter = e->event_id;
+      }
+    }
+
+    uint64_t *p = (uint64_t *) buf_ptr;
+    *p = counter;
+    buf_ptr += sizeof(counter);
+
+    p = (uint64_t *) buf_ptr;
+    *p = counter;
+    buf_ptr += sizeof(counter);
+
+    // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id <<
+    //              " event gap: [" << counter << ", " << counter << "]");
+    *num_events = *num_events + 1;
+    // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id << " has " << 
+    //              *num_events << " events");
+
+    size_t total_size = (size_t) (buf_ptr - buf);
+    return total_size;
+  }
+
+  void PiloController::CtlGossip(void) {
+    // send over the gaps in events
+    
+    ControllerState::LinkIterator it = log->link_begin();
+    ControllerState::LinkIterator it_end = log->link_end();
+
+    //uint8_t *buf = (uint8_t *) malloc(sizeof(LinkEvent) * log->num_link_events()); 
+    size_t per_link_size = (PiloController::gc + 1) * 2 * sizeof(uint64_t);
+    size_t total_possible_size = (sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint32_t) + per_link_size) * log->num_links();
+    uint8_t *buf = (uint8_t *) malloc(total_possible_size);
+    //uint8_t *buf_ptr = buf;
+
+    size_t total_actual_size = 0;
+
+    for (; it != it_end; it++) {
+      uint64_t link_id = *it;
+      //uint64_t *link_id_ptr = (uint64_t *) buf_ptr;
+      // *link_id_ptr = link_id;
+      // buf_ptr += sizeof(link_id);
+
+      // for each link, find the states for both switches
+      uint32_t s0 = ControllerState::GetSwitch0(link_id);
+      uint32_t s1 = ControllerState::GetSwitch1(link_id);
+      
+      total_actual_size += CtlGossipHelper(s0, link_id, buf+total_actual_size);
+      total_actual_size += CtlGossipHelper(s1, link_id, buf+total_actual_size);
+    }
+
+    // send gossip message
+    NS_ASSERT(total_possible_size >= total_actual_size);
+    Ptr<Packet> p = Create<Packet> (buf, total_actual_size);
     if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
       NS_LOG_INFO ("Sent gossip message to all controller nodes" );
     }
 
+    free(buf);
+    
     // reschedule itself
     if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
       Simulator::Schedule (Seconds(1), &PiloController::CtlGossip, this);
@@ -412,7 +512,7 @@ PiloController::GetLinkState (void)
         LinkEvent *e = *r_it;
         if (e->switch_id == s0 && e->link_id == link_id) {
           ++counter;
-          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " iterate switch: " << s0 << " event_id: " << e->event_id);
+          //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " iterate switch: " << s0 << " event_id: " << e->event_id);
           if (counter == PiloController::gc) {
             break;
           }
@@ -424,8 +524,8 @@ PiloController::GetLinkState (void)
       for (; r_it != r_it_end; r_it++) {
         LinkEvent *e = *r_it;
         if (e->switch_id == s0 && e->link_id == link_id) {
-          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " deleting " << (*r_it)->switch_id << ", " << (*r_it)->link_id << ", " <<
-                       (*r_it)->event_id);
+          // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " deleting " << (*r_it)->switch_id << ", " << (*r_it)->link_id << ", " <<
+          //              (*r_it)->event_id);
           deletes.push_back(e);
         }
       }
@@ -445,7 +545,7 @@ PiloController::GetLinkState (void)
         LinkEvent *e = *r_it;
         if (e->switch_id == s1 && e->link_id == link_id) {
           ++counter;
-          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " iterate switch: " << s1 << " event_id: " << e->event_id);
+          //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " iterate switch: " << s1 << " event_id: " << e->event_id);
           if (counter == PiloController::gc) {
             break;
           }
@@ -457,8 +557,8 @@ PiloController::GetLinkState (void)
       for (; r_it != r_it_end; r_it++) {
         LinkEvent *e = *r_it;
         if (e->switch_id == s1 && e->link_id == link_id) {
-          NS_LOG_LOGIC("Server " << GetNode()->GetId() << " deleting " << (*r_it)->switch_id << ", " << (*r_it)->link_id << ", " <<
-                       (*r_it)->event_id);
+          // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " deleting " << (*r_it)->switch_id << ", " << (*r_it)->link_id << ", " <<
+          //              (*r_it)->event_id);
           deletes.push_back(e);
         }
       }

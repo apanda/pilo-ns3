@@ -126,7 +126,7 @@ namespace ns3 {
     // get all the events within (low_event_id, high_event_id)
     void get_events_within_gap(uint32_t switch_id, uint64_t link_id, 
                                uint64_t low_event_id, uint64_t high_event_id,
-                               std::map<uint64_t, bool> *result) {
+                               std::set<LinkEvent *, SortLinkEvent> *result) {
       std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
       std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
 
@@ -134,7 +134,23 @@ namespace ns3 {
         LinkEvent *e = *it;
         if (e->switch_id == switch_id && e->link_id == link_id && 
             e->event_id > low_event_id && e->event_id < high_event_id) {
-          (*result)[e->event_id] = e->state;
+          //(*result)[e->event_id] = e->state;
+          result->insert(e);
+        }
+      }      
+    }
+
+    void get_greater_events(uint32_t switch_id, uint64_t link_id, uint64_t event_id,
+                            std::set<LinkEvent *, SortLinkEvent> *result) {
+
+      std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
+
+      for (; it != it_end; it++) {
+        LinkEvent *e = *it;
+        if (e->switch_id == switch_id && e->link_id == link_id && e->event_id > event_id) {
+          //(*result)[e->event_id] = e->state;
+          result->insert(e);
         }
       }      
     }
@@ -183,6 +199,10 @@ namespace ns3 {
 
     size_t num_link_events() {
       return log->size();
+    }
+
+    size_t num_links() {
+      return links->size();
     }
 
     bool event_in_log(LinkEvent *e) {
@@ -249,6 +269,14 @@ namespace ns3 {
         }
       }
 
+    }
+
+    LinkIterator link_begin() {
+      return links->begin();
+    }
+
+    LinkIterator link_end() {
+      return links->end();
     }
 
     std::set<LinkEvent *, SortLinkEvent> *log;
@@ -321,6 +349,7 @@ public:
   void GetLinkState(void);
   void CurrentLog(void);
   void GarbageCollect(void);
+  size_t CtlGossipHelper(uint32_t switch_id, uint64_t link_id, uint8_t *buf);
 
 protected:
   virtual void DoDispose (void);
@@ -353,7 +382,7 @@ private:
   int link_state_send_counter;
   int max_counter;
 
-  static const int gc = 10;
+  static const int gc = 5;
   static const int final_time = 200;
 };
 
