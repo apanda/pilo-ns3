@@ -32,10 +32,12 @@ Ipv4PiloDPRouting::Ipv4PiloDPRouting ():
   NS_LOG_FUNCTION (this);
   switch_id = 0;
   link_states = new std::map<uint64_t, link_state>();
+  hosts = new std::set<uint32_t>();
 }
 
 Ipv4PiloDPRouting::~Ipv4PiloDPRouting() {
   delete link_states;
+  delete hosts;
 }
 
 void
@@ -161,17 +163,14 @@ Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
         NS_ASSERT(chan->GetDevice(1)->GetNode() == m_ipv4->GetObject<Node>());
         m_ifaceToNode[iface] = chan->GetDevice(0)->GetNode()->GetId();
       }
-        
+
       Ipv4PiloDPRoutingHelper dpRouting;
       Ptr<Ipv4PiloDPRouting> node0 = dpRouting.GetPiloDPRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
       Ptr<Ipv4PiloDPRouting> node1 = dpRouting.GetPiloDPRouting(chan->GetDevice(1)->GetNode()->GetObject<Ipv4>());
-      
       if (node0 != 0 && node1 != 0) {
-        
         uint32_t switch_id0 = node0->GetSwitchId();
         uint32_t switch_id1 = node1->GetSwitchId();
         uint64_t link_id = GetLinkId(switch_id0, switch_id1);
-          
         if (link_states->find(link_id) == link_states->end()) {
           (*link_states)[link_id] = link_state(0, true);
         } else {
@@ -198,9 +197,37 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
   Ptr<NetDevice> dev = m_ipv4->GetNetDevice(iface);
   Ptr<Channel> chan = dev->GetChannel();
 
+  Ipv4StaticRoutingHelper sRouting;
   Ipv4PiloDPRoutingHelper dpRouting;
-  Ptr<Ipv4PiloDPRouting> node0 = dpRouting.GetPiloDPRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
-  Ptr<Ipv4PiloDPRouting> node1 = dpRouting.GetPiloDPRouting(chan->GetDevice(1)->GetNode()->GetObject<Ipv4>());
+  Ptr<Ipv4StaticRouting> s_node0 = sRouting.GetStaticRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
+  if (s_node0 != 0) {
+    // node 0 is a host; node 1 must be a switch
+    uint32_t host_ip = s_node0->GetIP();
+    // store host_ip
+    hosts->erase(host_ip);
+  } else {
+    
+    Ptr<Ipv4PiloDPRouting> node0 = dpRouting.GetPiloDPRouting(chan->GetDevice(0)->GetNode()->GetObject<Ipv4>());
+    Ptr<Ipv4PiloDPRouting> node1 = dpRouting.GetPiloDPRouting(chan->GetDevice(1)->GetNode()->GetObject<Ipv4>());
+    
+    if (node0 != 0 && node1 != 0) {
+      uint32_t switch_id0 = node0->GetSwitchId();
+      uint32_t switch_id1 = node1->GetSwitchId();
+      uint64_t link_id = GetLinkId(switch_id0, switch_id1);
+      
+      if (link_states->find(link_id) != link_states->end()) {
+        link_state current_state = (*link_states)[link_id];
+        if (current_state.state) {
+          (*link_states)[link_id].event_id = (*link_states)[link_id].event_id + 1;
+          (*link_states)[link_id].state = false;
+          
+          NS_LOG_LOGIC("Link down between switch " << switch_id0 << " and switch " << switch_id1 << 
+                       " for link id " << link_id);
+        }
+      }
+      
+    }
+  }
   
   // Need to regenerate the m_ifaceToNode table, since ifaces change
   m_ifaceToNode.clear();
@@ -209,22 +236,6 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
     NotifyInterfaceUp(i);
   }
 
-  if (node0 != 0 && node1 != 0) {
-    uint32_t switch_id0 = node0->GetSwitchId();
-    uint32_t switch_id1 = node1->GetSwitchId();
-    uint64_t link_id = GetLinkId(switch_id0, switch_id1);
-    
-    if (link_states->find(link_id) != link_states->end()) {
-      link_state current_state = (*link_states)[link_id];
-      if (current_state.state) {
-        (*link_states)[link_id].event_id = (*link_states)[link_id].event_id + 1;
-        (*link_states)[link_id].state = false;
-
-        NS_LOG_LOGIC("Link down between switch " << switch_id0 << " and switch " << switch_id1 << 
-                     " for link id " << link_id);
-      }
-    }
-  }
 }
 
 void
@@ -285,25 +296,144 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       // Ignore EchoAcks
       break;
     case AddRoute:
-      break;
+      {
+        Ipv4PiloDPRoutingHelper dpRouting;
+
+        uint8_t add_route_buf[8];
+        pkt->CopyData(add_route_buf, 8);
+
+        uint32_t *host_addr_ptr = (uint32_t *) (add_route_buf);
+        uint32_t host_addr = *host_addr_ptr;
+        uint32_t *route_node_id_ptr = (uint32_t *) (add_route_buf + 4);
+        uint32_t route_node_id = *route_node_id_ptr;
+
+        NS_LOG_LOGIC("AddRoute called at switch " << this->switch_id);
+
+        for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+        
+          Ptr<NetDevice> dev = m_ipv4->GetNetDevice(i);
+          Ptr<Channel> chan = dev->GetChannel();
+          if (chan != 0) {
+            Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
+            Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+            
+            if (node0 == m_ipv4->GetObject<Node>()) {
+              // node1 could be a host
+              // check address
+              Ptr<Ipv4PiloDPRouting> dp_node1 = dpRouting.GetPiloDPRouting(node1->GetObject<Ipv4>());
+              if (dp_node1 != 0) {
+                if (dp_node1->switch_id == route_node_id) {
+                  NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id);
+                  m_routingTable[Ipv4Address(host_addr)] = i;
+                }
+              }
+            } else {
+              Ptr<Ipv4PiloDPRouting> dp_node0 = dpRouting.GetPiloDPRouting(node0->GetObject<Ipv4>());
+              if (dp_node0 != 0) {
+                if (dp_node0->switch_id == route_node_id) {
+                  NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id);
+                  m_routingTable[Ipv4Address(host_addr)] = i;
+                }
+              }
+            }
+          }
+        }
+        break;
+      }
     case LinkState:
       {
+        hosts->clear();
+        // find the hosts connected to this switch
+        Ipv4StaticRoutingHelper sRouting;
+
+        //NS_LOG_LOGIC("Switch " << switch_id << " has " << m_ipv4->GetNInterfaces() << " interfaces ");
+        for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+          Ptr<NetDevice> dev = m_ipv4->GetNetDevice(i);
+          Ptr<Channel> chan = dev->GetChannel();
+          if (chan == 0) {
+            continue;
+          }
+          Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
+          if (node0 == 0) {
+            // not set up?
+            continue;
+          }
+
+          Ptr<Node> this_node = m_ipv4->GetObject<Node>();
+          NS_ASSERT(this_node != 0);
+
+          if (node0 == this_node) {
+            Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+            if (node1 != 0) {
+              // see if this node is host
+              Ptr<Ipv4StaticRouting> sr = sRouting.GetStaticRouting(node1->GetObject<Ipv4>());
+              
+              if (sr) {
+                // is a host
+                uint32_t addr = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+                hosts->insert(addr);
+              }
+            }
+          } else {
+            Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+            NS_ASSERT(node1 == this_node);
+            Ptr<Ipv4StaticRouting> sr = sRouting.GetStaticRouting(node0->GetObject<Ipv4>());
+            
+            if (sr) {
+              // is host
+              uint32_t addr = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+              hosts->insert(addr);
+            }
+          }
+        }
+
+
         // send to all controllers the current link states
         std::map<uint64_t, link_state>::iterator it = link_states->begin();
         std::map<uint64_t, link_state>::iterator it_end = link_states->end();
+        
+        const size_t total_size = (const size_t) (link_states->size() * sizeof(InterfaceStateMessage) + sizeof(uint32_t) + hosts->size() * sizeof(InterfaceStateMessage));
 
-        const size_t total_size = (const size_t) (link_states->size() * sizeof(InterfaceStateMessage));
         uint8_t buf[total_size];
+        uint8_t *buf_ptr = buf;
+
+        // first store the switch_id
+        uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
+        *switch_id_ptr  = this->switch_id;
+        buf_ptr += sizeof(uint32_t);
+
+        // // store IP of this switch
+        // Ipv4Address *addr = (Ipv4Address *) buf_ptr;
+        // *addr = m_ipv4->GetAddress(1, 0).GetLocal();
+        // buf_ptr += sizeof(Ipv4Address);
+        
         int counter = 0;
         
         for (; it != it_end; it++) {
-          InterfaceStateMessage *m = (InterfaceStateMessage *) (buf + sizeof(InterfaceStateMessage) * counter);
+          InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + sizeof(InterfaceStateMessage) * counter);
           
           m->switch_id = this->switch_id;
           m->other_switch_id = GetOtherSwitchId(it->first, this->switch_id);
           m->link_id = it->first;
           m->event_id = it->second.event_id;
           m->state = it->second.state;
+          m->is_host = false;
+          counter++;
+        }
+
+        // also send over hosts information
+        std::set<uint32_t>::iterator h_it = hosts->begin(); 
+        std::set<uint32_t>::iterator h_it_end = hosts->end();
+
+        for (; h_it != h_it_end; h_it++) {
+          InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + sizeof(InterfaceStateMessage) * counter);
+          m->switch_id = this->switch_id;
+          m->other_switch_id = *h_it;
+          m->link_id = 0;
+          m->event_id = 0;
+          m->state = true;
+          m->is_host = true;
+
           counter++;
         }
 

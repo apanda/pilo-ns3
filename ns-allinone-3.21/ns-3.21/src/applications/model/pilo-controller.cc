@@ -86,6 +86,9 @@ PiloController::PiloController ()
   m_sendEvent = EventId ();
   
   messages = new std::map<uint32_t, uint32_t>();
+  mapping = new std::map<uint32_t, uint32_t>();
+  hosts = new std::map<uint32_t, std::vector<uint32_t> *>();
+
   log = new ControllerState();
   gossip_send_counter = 0;
   link_state_send_counter = 0;
@@ -97,6 +100,15 @@ PiloController::~PiloController ()
   NS_LOG_FUNCTION (this);
   delete messages;
   delete log;
+  delete mapping;
+  
+  std::map<uint32_t, std::vector<uint32_t> *>::iterator it = hosts->begin();
+  std::map<uint32_t, std::vector<uint32_t> *>::iterator it_end = hosts->end();
+
+  for (; it != it_end; it++) {
+    delete it->second;
+  }
+  delete hosts;
 }
 
 void
@@ -160,6 +172,8 @@ PiloController::StartApplication (void)
   Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
   // start gc
   Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
+  // start route assignment function
+  Simulator::Schedule(Seconds(0.1), &PiloController::AssignRoutes, this);
 
   Simulator::Schedule(Seconds(final_time+5), &PiloController::CurrentLog, this);
 }
@@ -357,12 +371,37 @@ PiloController::GetLinkState (void)
               const size_t len = (const size_t) packet->GetSize();
               uint8_t buf[len];
               packet->CopyData(buf, packet->GetSize());
+              
+              // put the switch ID in local mapping: switch_id -> source node
+              uint8_t *buf_ptr = buf;
+              uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
+              uint32_t switch_id = *switch_id_ptr;
+              buf_ptr += sizeof(uint32_t);
+
+              //Ipv4Address *addr = (Ipv4Address *) buf_ptr;
+              //buf_ptr += sizeof(Ipv4Address);
+
+              (*mapping)[*switch_id_ptr] = piloHdr.GetSourceNode();
+              NS_LOG_LOGIC("Source node ID for switch " << *switch_id_ptr << " is " << piloHdr.GetSourceNode());
+              
               int counter = 0;
 
-              while (sizeof(InterfaceStateMessage) * counter < len) {
-                InterfaceStateMessage *m = (InterfaceStateMessage *) (buf + counter * sizeof(InterfaceStateMessage));
-                log->put_event(m->switch_id, m->link_id, m->event_id, m->state);
-                // NS_LOG_LOGIC("switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state);
+              if (hosts->find(switch_id) == hosts->end()) {
+                (*hosts)[switch_id] = new std::vector<uint32_t>();
+              }
+              (*hosts)[switch_id]->clear();
+
+              while (sizeof(InterfaceStateMessage) * counter + sizeof(uint32_t) < len) {
+                InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + counter * sizeof(InterfaceStateMessage));
+                if (m->is_host) {
+                  (*hosts)[switch_id]->push_back(m->other_switch_id);
+                  NS_LOG_LOGIC("switch_id: " << m->switch_id << " is connected to host " << m->other_switch_id);
+                  
+                } else {
+                  log->put_event(m->switch_id, m->link_id, m->event_id, m->state);
+                  NS_LOG_LOGIC("switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state);
+
+                }
                 counter++;
               }
 
@@ -578,6 +617,162 @@ PiloController::GetLinkState (void)
       Simulator::Schedule (Seconds(1), &PiloController::GarbageCollect, this);
       gossip_send_counter++;
     }
+  }
+
+  void PiloController::AssignRoutes() {
+    // for all switches, construct graph from the most "recent" link state events
+    std::set<uint32_t> *switches = new std::set<uint32_t>();
+    std::map<uint64_t, bool> *connection_graph = new std::map<uint64_t, bool>();
+
+    ControllerState::LinkIterator l_it = log->link_begin();
+    ControllerState::LinkIterator l_it_end = log->link_end();
+
+    ControllerState::LinkEventIterator le_it = log->link_event_begin();
+    ControllerState::LinkEventIterator le_it_end = log->link_event_end();
+
+    for (; l_it != l_it_end; l_it++) {
+      uint64_t link = *l_it;
+      le_it = log->link_event_begin();
+
+      uint32_t switch0 = ControllerState::GetSwitch0(link);
+      uint32_t switch1 = ControllerState::GetSwitch1(link);
+
+      switches->insert(switch0);
+      switches->insert(switch1);
+      
+      uint64_t highest_event_id = 0;
+      bool state = true;
+      bool found = false;
+      
+      // try for the highest event id per link
+      for (; le_it != le_it_end; le_it++) {
+        LinkEvent *e = *le_it;
+        if (e->link_id == link) {
+          if (e->event_id >= highest_event_id) {
+            found = true;
+            highest_event_id = e->event_id;
+            state = e->state;
+          }
+        }
+      }
+      
+      if (found) {
+        (*connection_graph)[link] = state;
+        NS_LOG_LOGIC("Link event found for link id " << link << " between switches " << switch0 << " and " << switch1
+                     << ", state is " << state);
+      }
+    }
+
+    // // process the network connection graph and find shortest path routing
+    size_t num_switches = switches->size();
+    Graph g(num_switches);
+    std::map<uint64_t, bool>::iterator it = connection_graph->begin();
+    std::map<uint64_t, bool>::iterator it_end = connection_graph->end();
+
+    NS_LOG_LOGIC("Constructing graph from log, connection graph has " << connection_graph->size() << " entries");
+    for (; it != it_end; it++) {
+      uint64_t link_id = it->first;
+      uint32_t switch0 = ControllerState::GetSwitch0(link_id);
+      uint32_t switch1 = ControllerState::GetSwitch1(link_id);
+
+      if (it->second) {
+        add_edge(switch0, switch1, 1, g);
+        add_edge(switch1, switch0, 1, g);
+        NS_LOG_LOGIC("Adding edge between " << switch0 << " and " << switch1);
+      }
+      NS_LOG_LOGIC("Edge between " << switch0 << " and " << switch1 << " state is " << it->second);
+    }
+
+    // put the hosts' locations in graph
+    std::map<uint32_t, std::vector<uint32_t> *>::iterator h_it = hosts->begin();
+    std::map<uint32_t, std::vector<uint32_t> *>::iterator h_it_end = hosts->end();
+
+    std::map<uint32_t, uint32_t> *host_ids = new std::map<uint32_t, uint32_t>();
+    uint32_t counter = (uint32_t) switches->size();
+
+    for (; h_it != h_it_end; h_it++) {
+      uint32_t s = h_it->first;
+      std::vector<uint32_t> *host_list = h_it->second;
+      
+      for (size_t i = 0; i < host_list->size(); i++) {
+        (*host_ids)[counter] = host_list->at(i);
+        NS_LOG_LOGIC("Begin adding edge between " << s << " and " << host_list->at(i));
+        add_edge(s, counter, 1, g);
+        add_edge(counter, s, 1, g);
+        NS_LOG_LOGIC("End adding edge between " << s << " and " << host_list->at(i));
+        ++counter;
+      }
+    }
+
+    //property_map<Graph, edge_weight_t>::type weightmap = get(edge_weight, g);
+    std::set<uint32_t>::iterator s_it = switches->begin();
+    std::set<uint32_t>::iterator s_it_end = switches->end();
+
+    std::map<uint32_t, uint32_t>::iterator h_id_it = host_ids->begin();
+    std::map<uint32_t, uint32_t>::iterator h_id_it_end = host_ids->end();
+
+    h_it = hosts->begin();
+    for (; h_id_it != h_id_it_end; h_id_it++) {
+      uint32_t host_id = h_id_it->first;
+      uint32_t host_addr = h_id_it->second;
+
+      vertex_descriptor vs = vertex(host_id, g);
+      std::vector<vertex_descriptor> p(num_vertices(g));
+      std::vector<int> d(num_vertices(g));
+
+      graph_traits < Graph >::vertex_iterator vi, vend;
+      NS_LOG_LOGIC("Running Dijkstra on host " << host_id);
+      
+      dijkstra_shortest_paths(g, vs,
+                              predecessor_map(boost::make_iterator_property_map(p.begin(), get(boost::vertex_index, g))).
+                              distance_map(boost::make_iterator_property_map(d.begin(), get(boost::vertex_index, g))));
+
+      for (boost::tie(vi, vend) = vertices(g); vi != vend; ++vi) {
+        NS_LOG_LOGIC("parent(" << *vi << ") = " << p[*vi]);
+
+        // message mapping: destination IP --> routing switch ID
+        if (host_id == *vi) {
+          continue;
+        }
+         
+        uint32_t idx = *vi;
+        uint32_t last_node = p[idx];
+        // while (true) {
+        //   if (p[idx] == host_id || p[idx] == idx) {
+        //     break;
+        //   }
+
+        //   last_node = idx;
+        //   idx = p[idx];
+        // }
+        NS_LOG_LOGIC("Destination " << host_addr << " Needs routing from " << last_node);
+
+        // TODO: make this step more efficient
+        uint8_t *buf = (uint8_t *) malloc(8);
+
+        uint32_t *dest_addr = (uint32_t *) buf;
+        *dest_addr = host_addr;
+        uint32_t * switch_ptr = (uint32_t *) (buf + sizeof(uint32_t));
+        *switch_ptr = last_node;
+        uint32_t switch_node = (*mapping)[*vi];
+
+        Ptr<Packet> p = Create<Packet> (buf, 8);
+        if ((m_socket->SendPiloMessage(switch_node, AddRoute, p)) >= 0) {
+          NS_LOG_INFO ("Sent AddRoute message to switch " << *vi << " with node id " << switch_node << " for address " << *dest_addr);
+        }
+        
+      }
+    }
+
+    delete switches;
+    delete connection_graph;
+    delete host_ids;
+    
+    if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
+      Simulator::Schedule (Seconds(1), &PiloController::AssignRoutes, this);
+      gossip_send_counter++;
+    }
+
   }
 
   // DEBUG 

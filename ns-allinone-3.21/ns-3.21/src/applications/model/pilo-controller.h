@@ -33,8 +33,20 @@
 #include "ns3/pilo-socket.h"
 #include "ns3/internet-module.h"
 
-namespace ns3 {
+#include <boost/config.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/property_map/property_map.hpp>
 
+namespace ns3 {
+  using namespace boost;
+
+  typedef adjacency_list<vecS, vecS, bidirectionalS, no_property, property<edge_weight_t, int> > Graph;
+  typedef graph_traits <Graph>::vertex_descriptor vertex_descriptor;
+  typedef std::pair<uint32_t, uint32_t> Edge;
+  typedef Graph::edge_descriptor edge_descriptor;
+  
   class LinkEvent {
     
   public:
@@ -350,6 +362,7 @@ public:
   void CurrentLog(void);
   void GarbageCollect(void);
   size_t CtlGossipHelper(uint32_t switch_id, uint64_t link_id, uint8_t *buf);
+  void AssignRoutes();
 
 protected:
   virtual void DoDispose (void);
@@ -378,6 +391,8 @@ private:
   // <packet uid, source>
   std::map<uint32_t, uint32_t> *messages;
   ControllerState *log;
+  std::map<uint32_t, uint32_t> *mapping;
+  std::map<uint32_t, std::vector<uint32_t> *> *hosts; // switch-to-host mapping
   int gossip_send_counter;
   int link_state_send_counter;
   int max_counter;

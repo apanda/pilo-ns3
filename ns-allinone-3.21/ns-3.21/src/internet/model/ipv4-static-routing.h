@@ -377,6 +377,10 @@ public:
  */
   void RemoveMulticastRoute (uint32_t index);
 
+  uint32_t GetIP() {
+    return m_ipv4->GetAddress(1, 0).GetLocal().Get();
+  }
+
 protected:
   virtual void DoDispose (void);
 
