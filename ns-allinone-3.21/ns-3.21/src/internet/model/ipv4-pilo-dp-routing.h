@@ -167,6 +167,7 @@ public:
   uint32_t GetSwitchId();
   uint64_t GetLinkId(uint32_t switch_id0, uint32_t switch_id1);
   uint32_t GetOtherSwitchId(uint64_t link_, uint32_t switch_id);
+  void SendLinkStates();
 
 protected:
   void HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt);

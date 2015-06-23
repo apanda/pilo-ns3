@@ -188,6 +188,8 @@ Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
   } else {
     NS_LOG_LOGIC ("Ignoring non-point-to-point device " << iface);
   }
+
+  SendLinkStates();
 }
 
 void
@@ -228,6 +230,8 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
       
     }
   }
+
+  SendLinkStates();
   
   // Need to regenerate the m_ifaceToNode table, since ifaces change
   m_ifaceToNode.clear();
@@ -359,106 +363,7 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       break;
     case LinkState:
       {
-        hosts->clear();
-        // find the hosts connected to this switch
-        Ipv4StaticRoutingHelper sRouting;
-
-        //NS_LOG_LOGIC("Switch " << switch_id << " has " << m_ipv4->GetNInterfaces() << " interfaces ");
-        for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
-          Ptr<NetDevice> dev = m_ipv4->GetNetDevice(i);
-          Ptr<Channel> chan = dev->GetChannel();
-          if (chan == 0) {
-            continue;
-          }
-          Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
-          if (node0 == 0) {
-            // not set up?
-            continue;
-          }
-
-          Ptr<Node> this_node = m_ipv4->GetObject<Node>();
-          NS_ASSERT(this_node != 0);
-
-          if (node0 == this_node) {
-            Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
-            if (node1 != 0) {
-              // see if this node is host
-              Ptr<Ipv4StaticRouting> sr = sRouting.GetStaticRouting(node1->GetObject<Ipv4>());
-              
-              if (sr) {
-                // is a host
-                uint32_t addr = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
-                hosts->insert(addr);
-              }
-            }
-          } else {
-            Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
-            NS_ASSERT(node1 == this_node);
-            Ptr<Ipv4StaticRouting> sr = sRouting.GetStaticRouting(node0->GetObject<Ipv4>());
-            
-            if (sr) {
-              // is host
-              uint32_t addr = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
-              hosts->insert(addr);
-            }
-          }
-        }
-
-
-        // send to all controllers the current link states
-        std::map<uint64_t, link_state>::iterator it = link_states->begin();
-        std::map<uint64_t, link_state>::iterator it_end = link_states->end();
-        
-        const size_t total_size = (const size_t) (link_states->size() * sizeof(InterfaceStateMessage) + sizeof(uint32_t) + hosts->size() * sizeof(InterfaceStateMessage));
-
-        uint8_t buf[total_size];
-        uint8_t *buf_ptr = buf;
-
-        // first store the switch_id
-        uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
-        *switch_id_ptr  = this->switch_id;
-        buf_ptr += sizeof(uint32_t);
-
-        // // store IP of this switch
-        // Ipv4Address *addr = (Ipv4Address *) buf_ptr;
-        // *addr = m_ipv4->GetAddress(1, 0).GetLocal();
-        // buf_ptr += sizeof(Ipv4Address);
-        
-        int counter = 0;
-        
-        for (; it != it_end; it++) {
-          InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + sizeof(InterfaceStateMessage) * counter);
-          
-          m->switch_id = this->switch_id;
-          m->other_switch_id = GetOtherSwitchId(it->first, this->switch_id);
-          m->link_id = it->first;
-          m->event_id = it->second.event_id;
-          m->state = it->second.state;
-          m->is_host = false;
-          counter++;
-        }
-
-        // also send over hosts information
-        std::set<uint32_t>::iterator h_it = hosts->begin(); 
-        std::set<uint32_t>::iterator h_it_end = hosts->end();
-
-        for (; h_it != h_it_end; h_it++) {
-          InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + sizeof(InterfaceStateMessage) * counter);
-          m->switch_id = this->switch_id;
-          m->other_switch_id = *h_it;
-          m->link_id = 0;
-          m->event_id = 0;
-          m->state = true;
-          m->is_host = true;
-
-          counter++;
-        }
-
-        Ptr<Packet> p = Create<Packet> (buf, total_size);
-        if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p) < 0) {
-          NS_LOG_LOGIC("Error sending link state reply");
-        }
-
+        SendLinkStates();
       }
       break;
     // case LinkStateReply:
@@ -472,6 +377,119 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
   };
 
 }
+
+  void Ipv4PiloDPRouting::SendLinkStates() {
+    hosts->clear();
+    // find the hosts connected to this switch
+    Ipv4StaticRoutingHelper sRouting;
+
+    //NS_LOG_LOGIC("Switch " << switch_id << " has " << m_ipv4->GetNInterfaces() << " interfaces ");
+    for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+      Ptr<NetDevice> dev = m_ipv4->GetNetDevice(i);
+      Ptr<Channel> chan = dev->GetChannel();
+      if (chan == 0) {
+        continue;
+      }
+      Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
+      if (node0 == 0) {
+        // not set up?
+        continue;
+      }
+
+      Ptr<Node> this_node = m_ipv4->GetObject<Node>();
+      NS_ASSERT(this_node != 0);
+
+      if (node0 == this_node) {
+        Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+        if (node1 != 0) {
+          // see if this node is host
+          Ptr<Ipv4StaticRouting> sr = sRouting.GetStaticRouting(node1->GetObject<Ipv4>());
+              
+          if (sr) {
+            // is a host
+            if (node1->GetObject<Ipv4>() != 0) {
+              Ptr<Ipv4> ip = node1->GetObject<Ipv4>();
+              if (ip->GetNInterfaces() > 1 && ip->GetNAddresses(1) > 0) {
+                uint32_t addr = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+                hosts->insert(addr);
+              }
+            }
+          }
+        }
+      } else {
+        Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+        NS_ASSERT(node1 == this_node);
+        Ptr<Ipv4StaticRouting> sr = sRouting.GetStaticRouting(node0->GetObject<Ipv4>());
+            
+        if (sr) {
+          // is host
+          if (node0->GetObject<Ipv4>() != 0) {
+            Ptr<Ipv4> ip = node1->GetObject<Ipv4>();
+            if (ip->GetNInterfaces() > 1 && ip->GetNAddresses(1) > 0) {
+              uint32_t addr = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+              hosts->insert(addr);
+            }
+          }
+        }
+      }
+    }
+    
+
+    // send to all controllers the current link states
+    std::map<uint64_t, link_state>::iterator it = link_states->begin();
+    std::map<uint64_t, link_state>::iterator it_end = link_states->end();
+        
+    const size_t total_size = (const size_t) (link_states->size() * sizeof(InterfaceStateMessage) + sizeof(uint32_t) + hosts->size() * sizeof(InterfaceStateMessage));
+
+    uint8_t buf[total_size];
+    uint8_t *buf_ptr = buf;
+
+    // first store the switch_id
+    uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
+    *switch_id_ptr  = this->switch_id;
+    buf_ptr += sizeof(uint32_t);
+
+    // // store IP of this switch
+    // Ipv4Address *addr = (Ipv4Address *) buf_ptr;
+    // *addr = m_ipv4->GetAddress(1, 0).GetLocal();
+    // buf_ptr += sizeof(Ipv4Address);
+        
+    int counter = 0;
+        
+    for (; it != it_end; it++) {
+      InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + sizeof(InterfaceStateMessage) * counter);
+          
+      m->switch_id = this->switch_id;
+      m->other_switch_id = GetOtherSwitchId(it->first, this->switch_id);
+      m->link_id = it->first;
+      m->event_id = it->second.event_id;
+      m->state = it->second.state;
+      m->is_host = false;
+      counter++;
+    }
+
+    // also send over hosts information
+    std::set<uint32_t>::iterator h_it = hosts->begin(); 
+    std::set<uint32_t>::iterator h_it_end = hosts->end();
+
+    for (; h_it != h_it_end; h_it++) {
+      InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + sizeof(InterfaceStateMessage) * counter);
+      m->switch_id = this->switch_id;
+      m->other_switch_id = *h_it;
+      m->link_id = 0;
+      m->event_id = 0;
+      m->state = true;
+      m->is_host = true;
+
+      counter++;
+    }
+
+    Ptr<Packet> p = Create<Packet> (buf, total_size);
+    if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p) < 0) {
+      NS_LOG_LOGIC("Error sending link state reply");
+    }
+  }
+
 // Called when a PILO control packet is received over the control connection.
 void 
 Ipv4PiloDPRouting::HandleRead (Ptr<Socket> socket) {

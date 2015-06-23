@@ -167,6 +167,21 @@ namespace ns3 {
       }      
     }
 
+    void get_smaller_events(uint32_t switch_id, uint64_t link_id, uint64_t event_id,
+                            std::set<LinkEvent *, SortLinkEvent> *result) {
+
+      std::set<LinkEvent *, SortLinkEvent>::iterator it = log->begin();
+      std::set<LinkEvent *, SortLinkEvent>::iterator it_end = log->end();
+
+      for (; it != it_end; it++) {
+        LinkEvent *e = *it;
+        if (e->switch_id == switch_id && e->link_id == link_id && e->event_id < event_id) {
+          //(*result)[e->event_id] = e->state;
+          result->insert(e);
+        }
+      }      
+    }
+
     void put_event(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state) {
       LinkEvent *e = new LinkEvent(switch_id, link_id, event_id, state);
       log->insert(e);

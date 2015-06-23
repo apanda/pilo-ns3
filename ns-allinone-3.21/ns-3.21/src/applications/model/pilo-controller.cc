@@ -172,8 +172,6 @@ PiloController::StartApplication (void)
   Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
   // start gc
   Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
-  // start route assignment function
-  Simulator::Schedule(Seconds(0.1), &PiloController::AssignRoutes, this);
 
   Simulator::Schedule(Seconds(final_time+5), &PiloController::CurrentLog, this);
 }
@@ -250,7 +248,7 @@ PiloController::GetLinkState (void)
 
   // reschedule itself
   if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
-    Simulator::Schedule (Seconds(0.5), &PiloController::GetLinkState, this);
+    Simulator::Schedule (Seconds(60), &PiloController::GetLinkState, this);
     link_state_send_counter++;
   }
 }
@@ -301,6 +299,7 @@ PiloController::GetLinkState (void)
                 total_bytes += sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint32_t);
 
                 for (uint32_t i = 0; i < num_events; i++) {
+
                   uint64_t *event_id0_ptr = (uint64_t *) buf_ptr;
                   uint64_t event_id0 = *event_id0_ptr;
                   buf_ptr += sizeof(uint64_t);
@@ -312,11 +311,16 @@ PiloController::GetLinkState (void)
                   total_bytes += sizeof(uint64_t);
 
                   //NS_LOG_LOGIC("[GossipReply] Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id << ", found gap [" << event_id0 << ", " << event_id1 << "]");
-                
-                  if (event_id0 == event_id1) {
-                    log->get_greater_events(switch_id, link_id, event_id0, result);
+
+                  if (i == 0) {
+                    // for the very first event, find all events smaller than this event_id
+                    log->get_smaller_events(switch_id, link_id, event_id0, result);
                   } else {
-                    log->get_events_within_gap(switch_id, link_id, event_id0, event_id1, result);
+                    if (event_id0 == event_id1) {
+                      log->get_greater_events(switch_id, link_id, event_id0, result);
+                    } else {
+                      log->get_events_within_gap(switch_id, link_id, event_id0, event_id1, result);
+                    }
                   }
                 }
               }
@@ -368,6 +372,10 @@ PiloController::GetLinkState (void)
 
             } else if (piloHdr.GetType() == LinkStateReply) {
               //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
+              
+              // get total number of events
+              size_t size_before = log->num_link_events();
+
               const size_t len = (const size_t) packet->GetSize();
               uint8_t buf[len];
               packet->CopyData(buf, packet->GetSize());
@@ -405,6 +413,12 @@ PiloController::GetLinkState (void)
                 counter++;
               }
 
+              size_t size_after = log->num_link_events();
+
+              if (size_after > size_before) {
+                AssignRoutes();
+              }
+
             } else {
               NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received some other type " << piloHdr.GetType() <<
                            " from " << piloHdr.GetSourceNode());
@@ -440,12 +454,24 @@ PiloController::GetLinkState (void)
       }
     }
 
+    bool first = true;
     event_it = log->link_event_begin();
     for (; event_it != event_it_end; event_it++) {
       LinkEvent *e = *event_it;
       if (e->switch_id == switch_id && e->link_id == link_id) {
         // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " link event: switch " << switch_id << ", link " << 
         //              link_id << ", event " << e->event_id);
+        if (first) {
+          uint64_t *p = (uint64_t *) buf_ptr;
+          *p = e->event_id;
+          buf_ptr += sizeof(e->event_id);
+          
+          p = (uint64_t *) buf_ptr;
+          *p = e->event_id;
+          buf_ptr += sizeof(e->event_id);
+          first = false;
+          *num_events = *num_events + 1;
+        }
 
         if (counter < e->event_id -1 && e->event_id > 0) {
           // there's a gap, put gap information in the buffer
@@ -771,10 +797,10 @@ PiloController::GetLinkState (void)
     delete connection_graph;
     delete host_ids;
     
-    if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
-      Simulator::Schedule (Seconds(1), &PiloController::AssignRoutes, this);
-      gossip_send_counter++;
-    }
+    // if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
+    //   Simulator::Schedule (Seconds(1), &PiloController::AssignRoutes, this);
+    //   gossip_send_counter++;
+    // }
 
   }
 
