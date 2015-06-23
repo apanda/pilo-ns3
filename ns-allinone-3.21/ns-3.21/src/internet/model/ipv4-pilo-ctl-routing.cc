@@ -124,7 +124,7 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
       rtentry->SetGateway (Ipv4Address::GetZero ());
       rtentry->SetOutputDevice (m_ipv4->GetNetDevice(i));
       rtentry->SetSource (m_ipv4->GetAddress (i, 0).GetLocal ());
-      ucb(rtentry, p, header);
+      ucb(rtentry, p->Copy(), header);
     } else {
       NS_LOG_LOGIC ("Not forwarding packet out interface " << i << " since received"); 
     }
