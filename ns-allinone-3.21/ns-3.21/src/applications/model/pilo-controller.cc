@@ -705,8 +705,8 @@ PiloController::GetLinkState (void)
     }
 
     //property_map<Graph, edge_weight_t>::type weightmap = get(edge_weight, g);
-    std::set<uint32_t>::iterator s_it = switches->begin();
-    std::set<uint32_t>::iterator s_it_end = switches->end();
+    //std::set<uint32_t>::iterator s_it = switches->begin();
+    //std::set<uint32_t>::iterator s_it_end = switches->end();
 
     std::map<uint32_t, uint32_t>::iterator h_id_it = host_ids->begin();
     std::map<uint32_t, uint32_t>::iterator h_id_it_end = host_ids->end();

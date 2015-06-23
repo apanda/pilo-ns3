@@ -811,9 +811,11 @@ Ipv4L3Protocol::BuildHeader (
 void 
 Ipv4L3Protocol::SendBcast (Ptr<Packet> p ,Ipv4Address dest)
 {
-    NS_LOG_FUNCTION (this << p << dest);
+    NS_LOG_FUNCTION (this << p << dest << "  interface " << m_interfaces.size ());
     for (uint32_t i = 1; i < GetNInterfaces(); i++) {
-        GetInterface(i)->Send(p, dest);
+        Ptr<Packet> sendP = p->Copy();
+        NS_LOG_INFO("Sending BCast out to " << i << " packet " << p);
+        GetInterface(i)->Send(sendP, dest);
     }
 }
 void
