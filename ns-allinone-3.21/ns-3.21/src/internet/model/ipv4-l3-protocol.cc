@@ -812,7 +812,7 @@ void
 Ipv4L3Protocol::SendBcast (Ptr<Packet> p ,Ipv4Address dest)
 {
     NS_LOG_FUNCTION (this << p << dest);
-    for (int i = 1; i < GetNInterfaces(); i++) {
+    for (uint32_t i = 1; i < GetNInterfaces(); i++) {
         GetInterface(i)->Send(p, dest);
     }
 }

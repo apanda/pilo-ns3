@@ -1,0 +1,33 @@
+c1:
+  args: {address: 6}
+  type: LSLeaderControl
+c2:
+  args: {address: 7}
+  type: LSLeaderControl
+fail_links: [s3-s4]
+h0:
+  args: {address: 1}
+  type: Host
+h1:
+  args: {address: 2}
+  type: Host
+h3:
+  args: {address: 3}
+  type: Host
+h4:
+  args: {address: 4}
+  type: Host
+h5:
+  args: {address: 5}
+  type: Host
+links: [s1-s2, s1-s3, s2-s4, s3-s4, s4-s5, s5-s6, s5-s7, s6-s8, s7-s8, s1-c1, s6-c2, s1-h0, s1-h1, s1-h3, s1-h4, s1-h5, s8-s9]
+runfile: controllers
+s1: {type: LinkStateSwitch}
+s2: {type: LinkStateSwitch}
+s3: {type: LinkStateSwitch}
+s4: {type: LinkStateSwitch}
+s5: {type: LinkStateSwitch}
+s6: {type: LinkStateSwitch}
+s7: {type: LinkStateSwitch}
+s8: {type: LinkStateSwitch}
+s9: {type: LinkStateSwitch}
