@@ -82,6 +82,10 @@ public:
    */
   Ptr<NetDevice> GetOutputDevice (void) const;
 
+  bool IsBroadcast (void) const;
+
+  void SetBroadcast (bool);
+
 #ifdef NOTYET
   // rtable.idev
   void SetInputIfIndex (uint32_t iif);
@@ -93,6 +97,7 @@ private:
   Ipv4Address m_source;           //!< Source address.
   Ipv4Address m_gateway;          //!< Gateway address.
   Ptr<NetDevice> m_outputDevice;  //!< Output device.
+  bool m_routeBcast;
 #ifdef NOTYET
   uint32_t m_inputIfIndex;
 #endif

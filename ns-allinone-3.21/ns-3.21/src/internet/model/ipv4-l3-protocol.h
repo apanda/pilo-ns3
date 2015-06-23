@@ -253,6 +253,8 @@ protected:
 private:
   friend class ::Ipv4L3ProtocolTestCase;
 
+  void SendBcast (Ptr<Packet> p ,Ipv4Address dest); 
+
   /**
    * \brief Copy constructor.
    *

@@ -57,6 +57,7 @@ Ipv4PiloCtlRouting::RouteOutput (Ptr<Packet> p,
     rtentry->SetGateway (Ipv4Address::GetZero ());
     rtentry->SetOutputDevice (oif);
     rtentry->SetSource (m_ipv4->GetAddress (ifIndex, 0).GetLocal ());
+    rtentry->SetBroadcast(true);
     sockerr = Socket::ERROR_NOTERROR;
     NS_LOG_LOGIC ("Done, sending to " << rtentry->GetDestination() << 
                   " through "  << rtentry->GetGateway()<<

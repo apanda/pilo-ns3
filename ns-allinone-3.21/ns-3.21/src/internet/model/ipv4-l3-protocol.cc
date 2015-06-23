@@ -808,6 +808,14 @@ Ipv4L3Protocol::BuildHeader (
   return ipHeader;
 }
 
+void 
+Ipv4L3Protocol::SendBcast (Ptr<Packet> p ,Ipv4Address dest)
+{
+    NS_LOG_FUNCTION (this << p << dest);
+    for (int i = 1; i < GetNInterfaces(); i++) {
+        GetInterface(i)->Send(p, dest);
+    }
+}
 void
 Ipv4L3Protocol::SendRealOut (Ptr<Ipv4Route> route,
                              Ptr<Packet> packet,
@@ -839,13 +847,21 @@ Ipv4L3Protocol::SendRealOut (Ptr<Ipv4Route> route,
               for ( std::list<Ptr<Packet> >::iterator it = listFragments.begin (); it != listFragments.end (); it++ )
                 {
                   m_txTrace (*it, m_node->GetObject<Ipv4> (), interface);
-                  outInterface->Send (*it, route->GetGateway ());
+                  if (route->IsBroadcast()) {
+                      SendBcast(*it, route->GetGateway());
+                  } else {
+                    outInterface->Send (*it, route->GetGateway ());
+                  }
                 }
             }
           else
             {
               m_txTrace (packet, m_node->GetObject<Ipv4> (), interface);
-              outInterface->Send (packet, route->GetGateway ());
+              if (route->IsBroadcast()) {
+                  SendBcast(packet, route->GetGateway());
+              } else {
+                  outInterface->Send (packet, route->GetGateway ());
+              }
             }
         }
       else
@@ -869,13 +885,21 @@ Ipv4L3Protocol::SendRealOut (Ptr<Ipv4Route> route,
                 {
                   NS_LOG_LOGIC ("Sending fragment " << **it );
                   m_txTrace (*it, m_node->GetObject<Ipv4> (), interface);
-                  outInterface->Send (*it, ipHeader.GetDestination ());
+                  if (route->IsBroadcast()) {
+                    SendBcast(*it, route->GetGateway());
+                  } else {
+                    outInterface->Send (*it, ipHeader.GetDestination ());
+                  }
                 }
             }
           else
             {
               m_txTrace (packet, m_node->GetObject<Ipv4> (), interface);
-              outInterface->Send (packet, ipHeader.GetDestination ());
+              if (route->IsBroadcast()) {
+                  SendBcast(packet, route->GetGateway());
+              } else {
+                  outInterface->Send (packet, ipHeader.GetDestination ());
+              }
             }
         }
       else

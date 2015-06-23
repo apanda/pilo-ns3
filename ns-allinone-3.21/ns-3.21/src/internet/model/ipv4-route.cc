@@ -29,6 +29,19 @@ namespace ns3 {
 Ipv4Route::Ipv4Route ()
 {
   NS_LOG_FUNCTION (this);
+  m_routeBcast = false;
+}
+
+void
+Ipv4Route::SetBroadcast (bool bcast) 
+{
+  m_routeBcast = bcast;
+}
+
+bool
+Ipv4Route::IsBroadcast () const 
+{
+  return m_routeBcast;
 }
 
 void
