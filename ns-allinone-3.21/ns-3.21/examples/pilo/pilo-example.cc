@@ -138,6 +138,9 @@ main (int argc, char *argv[])
     switchContainer.Add(n.Get(nodeMap[swtch]));
   }
 
+  for (auto node : nodeMap) {
+    NS_LOG_INFO(node.first << " " << node.second);
+  }
 
   // The order here (InternetStack installed before p2p links) is meaningful. Reversing this could be bad.
   // Need this to assign IP addresses. Basically this is just installing a new IPv4 stack.
@@ -277,7 +280,7 @@ main (int argc, char *argv[])
   controller2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
   controller2.SetAttribute ("Interval", TimeValue (interPacketInterval));
   controller2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  controller2.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
+  //controller2.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
   //controller2.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(0)->GetId()));
   
   ApplicationContainer apps;
@@ -289,22 +292,22 @@ main (int argc, char *argv[])
   apps.Start (Seconds (2.0));
   apps.Stop (Seconds (700.0));
 
-  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  // Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  // Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
 
   // partition the network
-  Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+  //Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   // fail and recover links
-  for (int i = 0; i < 20; i++) {
-    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+  // for (int i = 0; i < 20; i++) {
+  //   Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  //   Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
     
-    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
-  }
+  //   Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  //   Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+  // }
 
-  Simulator::Schedule(Seconds(60), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+  //Simulator::Schedule(Seconds(60), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   /************ END PILO CONTROLLER TEST ************/
 

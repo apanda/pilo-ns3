@@ -307,7 +307,8 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
         uint32_t *route_node_id_ptr = (uint32_t *) (add_route_buf + 4);
         uint32_t route_node_id = *route_node_id_ptr;
 
-        NS_LOG_LOGIC("AddRoute called at switch " << this->switch_id);
+        NS_LOG_LOGIC("AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << ", route_node_id " << 
+                     route_node_id);
 
         for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
         

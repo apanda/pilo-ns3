@@ -382,7 +382,7 @@ PiloController::GetLinkState (void)
               //buf_ptr += sizeof(Ipv4Address);
 
               (*mapping)[*switch_id_ptr] = piloHdr.GetSourceNode();
-              NS_LOG_LOGIC("Source node ID for switch " << *switch_id_ptr << " is " << piloHdr.GetSourceNode());
+              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " -- Source node ID for switch " << *switch_id_ptr << " is " << piloHdr.GetSourceNode());
               
               int counter = 0;
 
@@ -731,7 +731,7 @@ PiloController::GetLinkState (void)
         NS_LOG_LOGIC("parent(" << *vi << ") = " << p[*vi]);
 
         // message mapping: destination IP --> routing switch ID
-        if (host_id == *vi) {
+        if (host_id == *vi || *vi >= switches->size()) {
           continue;
         }
          
@@ -747,18 +747,21 @@ PiloController::GetLinkState (void)
         // }
         NS_LOG_LOGIC("Destination " << host_addr << " Needs routing from " << last_node);
 
-        // TODO: make this step more efficient
-        uint8_t *buf = (uint8_t *) malloc(8);
-
-        uint32_t *dest_addr = (uint32_t *) buf;
-        *dest_addr = host_addr;
-        uint32_t * switch_ptr = (uint32_t *) (buf + sizeof(uint32_t));
-        *switch_ptr = last_node;
-        uint32_t switch_node = (*mapping)[*vi];
-
-        Ptr<Packet> p = Create<Packet> (buf, 8);
-        if ((m_socket->SendPiloMessage(switch_node, AddRoute, p)) >= 0) {
-          NS_LOG_INFO ("Sent AddRoute message to switch " << *vi << " with node id " << switch_node << " for address " << *dest_addr);
+        if (mapping->find(*vi) != mapping->end()) {
+          
+          // TODO: make this step more efficient
+          uint8_t *buf = (uint8_t *) malloc(8);
+          
+          uint32_t *dest_addr = (uint32_t *) buf;
+          *dest_addr = host_addr;
+          uint32_t * switch_ptr = (uint32_t *) (buf + sizeof(uint32_t));
+          *switch_ptr = last_node;
+          uint32_t switch_node = (*mapping)[*vi];
+          
+          Ptr<Packet> p = Create<Packet> (buf, 8);
+          if ((m_socket->SendPiloMessage(switch_node, AddRoute, p)) >= 0) {
+            NS_LOG_INFO ("Sent AddRoute message to switch " << *vi << " with node id " << switch_node << " for address " << *dest_addr);
+          }
         }
         
       }

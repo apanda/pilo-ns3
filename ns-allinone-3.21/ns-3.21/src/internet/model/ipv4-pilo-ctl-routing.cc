@@ -84,6 +84,7 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
   p->PeekHeader (piloHeader);
 
   NS_LOG_LOGIC("Handling packet with header " << piloHeader);
+  NS_LOG_LOGIC("Handling packet from " << piloHeader.GetSourceNode() << ", message type " << piloHeader.GetType());
 
   if (m_filter.find(piloHeader.GetSourceNode()) != m_filter.end() &&
       m_filter[piloHeader.GetSourceNode()].find(header.GetIdentification())  != 
