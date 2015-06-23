@@ -298,7 +298,7 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
     case AddRoute:
       {
         Ipv4PiloDPRoutingHelper dpRouting;
-
+        
         uint8_t add_route_buf[8];
         pkt->CopyData(add_route_buf, 8);
 
@@ -327,6 +327,14 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
                   NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id);
                   m_routingTable[Ipv4Address(host_addr)] = i;
                 }
+              } else {
+                // node1 is a host, check to see if it's the target host node
+                uint32_t addr = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+                //NS_LOG_LOGIC("Node 1 is host with address " << addr);
+                if (addr == host_addr) {
+                  m_routingTable[Ipv4Address(host_addr)] = i;
+                  NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id);
+                }
               }
             } else {
               Ptr<Ipv4PiloDPRouting> dp_node0 = dpRouting.GetPiloDPRouting(node0->GetObject<Ipv4>());
@@ -335,12 +343,20 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
                   NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id);
                   m_routingTable[Ipv4Address(host_addr)] = i;
                 }
+              } else {
+                // node0 is a host, check to see if it's the target host node
+                uint32_t addr = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+                //NS_LOG_LOGIC("Node 0 is host with address " << addr);
+                if (addr == host_addr) {
+                  m_routingTable[Ipv4Address(host_addr)] = i;
+                  NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id);
+                }
               }
             }
           }
-        }
-        break;
+        } 
       }
+      break;
     case LinkState:
       {
         hosts->clear();
