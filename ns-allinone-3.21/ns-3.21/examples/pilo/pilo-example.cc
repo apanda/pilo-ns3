@@ -18,6 +18,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/error-model.h"
 
 using namespace ns3;
 
@@ -279,7 +280,6 @@ main (int argc, char *argv[])
   controller2.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
   //controller2.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(0)->GetId()));
   
-  
   ApplicationContainer apps;
   apps = controller1.Install (cNode1);
   apps.Start (Seconds (2.0));
@@ -288,6 +288,23 @@ main (int argc, char *argv[])
   apps = controller2.Install (cNode2);
   apps.Start (Seconds (2.0));
   apps.Stop (Seconds (700.0));
+
+  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+
+  // partition the network
+  Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+
+  // fail and recover links
+  for (int i = 0; i < 20; i++) {
+    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+    
+    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+  }
+
+  Simulator::Schedule(Seconds(60), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
 
   /************ END PILO CONTROLLER TEST ************/
 
@@ -315,7 +332,7 @@ main (int argc, char *argv[])
   // apps.Stop (Seconds (700.0));
 
   // Demonstrate how to set a link down 10 seconds in simulation time
-  Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s6"], nodeMap["s49"])]);
+  //Simulator::Schedule(Seconds(10), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s6"], nodeMap["s49"])]);
 
 #if 0
 //

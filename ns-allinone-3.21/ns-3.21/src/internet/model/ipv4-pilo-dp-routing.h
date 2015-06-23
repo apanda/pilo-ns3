@@ -34,6 +34,7 @@ struct InterfaceStateMessage {
   uint64_t event_id;
   bool state;
   uint32_t other_switch_id;
+  bool is_host;
 };
 
 struct link_state {
@@ -178,6 +179,7 @@ protected:
   static const uint16_t PORT = 6500;
   uint32_t switch_id;
   std::map<uint64_t, link_state> *link_states; // link_id: event_id
+  std::set<uint32_t> *hosts; // a set of hosts that are currently connected to this switch
 };
 
 }
