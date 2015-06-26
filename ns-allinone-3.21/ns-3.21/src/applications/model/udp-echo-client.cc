@@ -281,6 +281,16 @@ UdpEchoClient::Send (void)
   NS_ASSERT (m_sendEvent.IsExpired ());
 
   Ptr<Packet> p;
+
+  // copy the simulation time to buffer
+  NS_ASSERT(m_size >= sizeof(Simulator::Now().GetSeconds()));
+
+  const size_t s = (const size_t) sizeof(double);
+  uint8_t buf[s];
+  double current_time = Simulator::Now().GetSeconds();
+  double *current_time_ptr = (double *) buf;
+  *current_time_ptr = current_time;
+
   if (m_dataSize)
     {
       //
@@ -302,10 +312,12 @@ UdpEchoClient::Send (void)
       // this case, we don't worry about it either.  But we do allow m_size
       // to have a value different from the (zero) m_dataSize.
       //
-      p = Create<Packet> (m_size);
+      p = Create<Packet> (buf, m_size);
     }
   // call to the trace sinks before the packet is actually sent,
   // so that tags added to the packet can be sent as well
+   
+  
   m_txTrace (p);
   m_socket->Send (p);
 

@@ -68,7 +68,7 @@ PiloController::GetTypeId (void)
                    "Size of packets generated. The minimum packet size is 12 bytes which is the size of the header carrying the sequence number and the time stamp.",
                    UintegerValue (1024),
                    MakeUintegerAccessor (&PiloController::m_size),
-                   MakeUintegerChecker<uint32_t> (12,1500))
+                   MakeUintegerChecker<uint32_t> (12,1500*10))
     .AddAttribute ("NodeSend",
                    "What node to send PILO packets",
                    UintegerValue (PiloHeader::ALL_NODES),
@@ -88,11 +88,13 @@ PiloController::PiloController ()
   messages = new std::map<uint32_t, uint32_t>();
   mapping = new std::map<uint32_t, uint32_t>();
   hosts = new std::map<uint32_t, std::vector<uint32_t> *>();
+  bandwidth_per_link = new std::map<uint64_t, uint64_t>();
 
   log = new ControllerState();
   gossip_send_counter = 0;
   link_state_send_counter = 0;
   max_counter = 20;
+  total_bytes = 0;
 }
 
 PiloController::~PiloController ()
@@ -109,6 +111,8 @@ PiloController::~PiloController ()
     delete it->second;
   }
   delete hosts;
+
+  delete bandwidth_per_link;
 }
 
 void
@@ -172,8 +176,6 @@ PiloController::StartApplication (void)
   Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
   // start gc
   Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
-
-  Simulator::Schedule(Seconds(final_time+5), &PiloController::CurrentLog, this);
 }
 
 void
@@ -263,6 +265,8 @@ PiloController::GetLinkState (void)
       {
         if (packet->GetSize () > 0)
           {
+            AddBandwidth(packet->GetSize());
+            
             PiloHeader piloHdr;
             packet->RemoveHeader (piloHdr);
             if (piloHdr.GetType() == EchoAck) {
@@ -272,9 +276,8 @@ PiloController::GetLinkState (void)
               std::set<LinkEvent *, SortLinkEvent> *result = new std::set<LinkEvent *, SortLinkEvent>();
 
               uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
-              packet->CopyData(buf, packet->GetSize());
-
               uint8_t *buf_ptr = buf;
+              packet->CopyData(buf, packet->GetSize());
               
               size_t total_bytes = 0;
               
@@ -293,10 +296,11 @@ PiloController::GetLinkState (void)
                 uint32_t num_events = *num_events_ptr;
                 buf_ptr += sizeof(uint32_t);
 
-                // NS_LOG_LOGIC("[GossipReply] Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id
-                //              << " has " << num_events << " events");
+                NS_LOG_LOGIC("[GossipReply] Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id
+                             << " has " << num_events << " events");
 
                 total_bytes += sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint32_t);
+                NS_LOG_LOGIC("Packet's size is " << packet->GetSize() << ", total current size is " << total_bytes);
 
                 for (uint32_t i = 0; i < num_events; i++) {
 
@@ -390,7 +394,7 @@ PiloController::GetLinkState (void)
               //buf_ptr += sizeof(Ipv4Address);
 
               (*mapping)[*switch_id_ptr] = piloHdr.GetSourceNode();
-              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " -- Source node ID for switch " << *switch_id_ptr << " is " << piloHdr.GetSourceNode());
+              //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " -- Source node ID for switch " << *switch_id_ptr << " is " << piloHdr.GetSourceNode());
               
               int counter = 0;
 
@@ -403,11 +407,11 @@ PiloController::GetLinkState (void)
                 InterfaceStateMessage *m = (InterfaceStateMessage *) (buf_ptr + counter * sizeof(InterfaceStateMessage));
                 if (m->is_host) {
                   (*hosts)[switch_id]->push_back(m->other_switch_id);
-                  NS_LOG_LOGIC("switch_id: " << m->switch_id << " is connected to host " << m->other_switch_id);
+                  //NS_LOG_LOGIC("switch_id: " << m->switch_id << " is connected to host " << m->other_switch_id);
                   
                 } else {
                   log->put_event(m->switch_id, m->link_id, m->event_id, m->state);
-                  NS_LOG_LOGIC("switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state);
+                  //NS_LOG_LOGIC("switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state);
 
                 }
                 counter++;
@@ -415,7 +419,7 @@ PiloController::GetLinkState (void)
 
               size_t size_after = log->num_link_events();
 
-              if (size_after > size_before) {
+              if (size_after != size_before) {
                 AssignRoutes();
               }
 
@@ -501,9 +505,9 @@ PiloController::GetLinkState (void)
     // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id <<
     //              " event gap: [" << counter << ", " << counter << "]");
     *num_events = *num_events + 1;
-    // NS_LOG_LOGIC("Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id << " has " << 
-    //              *num_events << " events");
-
+    NS_LOG_LOGIC("Server " << GetNode()->GetId() << " switch " << switch_id << ", link " << link_id << " has " << 
+                 *num_events << " events");
+    
     size_t total_size = (size_t) (buf_ptr - buf);
     return total_size;
   }
@@ -515,7 +519,7 @@ PiloController::GetLinkState (void)
     ControllerState::LinkIterator it_end = log->link_end();
 
     //uint8_t *buf = (uint8_t *) malloc(sizeof(LinkEvent) * log->num_link_events()); 
-    size_t per_link_size = (PiloController::gc + 1) * 2 * sizeof(uint64_t);
+    size_t per_link_size = (PiloController::gc * 2) * 2 * sizeof(uint64_t);
     size_t total_possible_size = (sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint32_t) + per_link_size) * log->num_links();
     uint8_t *buf = (uint8_t *) malloc(total_possible_size);
     //uint8_t *buf_ptr = buf;
@@ -537,6 +541,9 @@ PiloController::GetLinkState (void)
     }
 
     // send gossip message
+    
+    NS_LOG_LOGIC("Gossip request total size is " << total_actual_size);
+    
     NS_ASSERT(total_possible_size >= total_actual_size);
     Ptr<Packet> p = Create<Packet> (buf, total_actual_size);
     if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
@@ -771,7 +778,7 @@ PiloController::GetLinkState (void)
         //   last_node = idx;
         //   idx = p[idx];
         // }
-        NS_LOG_LOGIC("Destination " << host_addr << " Needs routing from " << last_node);
+        NS_LOG_LOGIC("Destination " << host_addr << " Needs routing from " << last_node << " from current node " << *vi);
 
         if (mapping->find(*vi) != mapping->end()) {
           

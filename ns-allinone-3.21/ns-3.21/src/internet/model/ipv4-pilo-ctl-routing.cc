@@ -11,6 +11,7 @@
 #include "ns3/ipv4-route.h"
 #include "ns3/output-stream-wrapper.h"
 #include "ns3/pilo-header.h"
+#include "ns3/ipv4-pilo-dp-routing-helper.h"
 
 NS_LOG_COMPONENT_DEFINE ("Ipv4PiloCtlRouting");
 namespace ns3 {
@@ -29,7 +30,12 @@ Ipv4PiloCtlRouting::GetTypeId (void) {
 Ipv4PiloCtlRouting::Ipv4PiloCtlRouting ():
     m_ipv4(NULL) {
   NS_LOG_FUNCTION (this);
+  bandwidth_per_link = new std::map<uint64_t, uint64_t>();
 }
+
+  Ipv4PiloCtlRouting::~Ipv4PiloCtlRouting() {
+    delete bandwidth_per_link;
+  }
 
 Ptr<Ipv4Route> 
 Ipv4PiloCtlRouting::RouteOutput (Ptr<Packet> p, 
@@ -94,6 +100,39 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
                  // list routing or other things don't pass it to the next node.
   }
 
+
+  Ptr<Channel> chan = idev->GetChannel();
+  Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
+  Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+  Ipv4PiloDPRoutingHelper dpRouting;
+
+  uint32_t node0_id = 0;
+  uint32_t node1_id = 0;
+
+  NS_ASSERT(node0 != 0);
+  NS_ASSERT(node1 != 0);
+
+  Ptr<Ipv4PiloDPRouting> dp_node0 = dpRouting.GetPiloDPRouting(node0->GetObject<Ipv4>());
+  Ptr<Ipv4PiloDPRouting> dp_node1 = dpRouting.GetPiloDPRouting(node1->GetObject<Ipv4>());
+
+  if (dp_node0 != 0) {
+    node0_id = dp_node0->GetSwitchId();
+  } else {
+    node0_id = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+  }
+
+  if (dp_node1 != 0) {
+    node1_id = dp_node1->GetSwitchId();
+  } else {
+    node1_id = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+  }
+
+  uint64_t link_id = GetLinkId(node0_id, node1_id);
+  if (bandwidth_per_link->find(link_id) == bandwidth_per_link->end()) {
+    (*bandwidth_per_link)[link_id] = 0;
+  }
+  (*bandwidth_per_link)[link_id] += p->GetSize();
+      
   m_filter[piloHeader.GetSourceNode()].insert(header.GetIdentification());
   // When flooding don't send out received port
   uint32_t iifIdx = m_ipv4->GetInterfaceForDevice(idev);

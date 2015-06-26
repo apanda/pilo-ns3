@@ -16,6 +16,9 @@
 #include "ns3/ptr.h"
 #include "ns3/ipv4.h"
 #include "ns3/ipv4-routing-protocol.h"
+#include "ns3/simulator.h"
+#include "ns3/channel.h"
+#include "ns3/ipv4-pilo-dp-routing-helper.h"
 
 namespace ns3 {
 class Packet;
@@ -27,12 +30,14 @@ class Ipv4RoutingTableEntry;
 class Ipv4MulticastRoutingTableEntry;
 class Node;
 
+
 class Ipv4PiloCtlRouting : public Ipv4RoutingProtocol
 {
   typedef std::unordered_map<uint32_t, std::unordered_set<uint16_t> > 
             previous_packets;
 public:
   Ipv4PiloCtlRouting ();
+  ~Ipv4PiloCtlRouting ();
 
   static TypeId GetTypeId (void);
 
@@ -132,9 +137,61 @@ public:
    */
   virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
+public:
+  void GetBandwidthInfo() {
+    std::map<uint64_t, uint64_t>::iterator it = bandwidth_per_link->begin();  
+    std::map<uint64_t, uint64_t>::iterator it_end = bandwidth_per_link->end();
+
+    Ipv4PiloDPRoutingHelper dpRouting;
+    Ptr<Ipv4PiloDPRouting> dp_node = dpRouting.GetPiloDPRouting(m_ipv4);
+
+    printf("[bw]Bandwidth info for from switch %u\n", dp_node->GetSwitchId());
+
+    for (; it != it_end; it++) {
+      uint64_t link_id = it->first;
+      uint64_t bytes = it->second;
+
+      uint32_t switch0 = GetSwitch0(link_id);
+      uint32_t switch1 = GetSwitch1(link_id);
+
+      double bw = (double) (bytes) * 8 / 1000.0 / (Simulator::Now().GetSeconds());
+      printf("[bw]Link id: %lu, %u-%u -- bandwidth: %f Mb/s\n", link_id, switch0, switch1, bw);
+      
+    }
+    printf("[bw]Bandwidth info done for switch %u\n", dp_node->GetSwitchId());
+  }
+
+  uint32_t GetSwitch0(uint64_t link_id) {
+    uint64_t link_ = link_id;
+    uint32_t *ptr0 = (uint32_t *) &link_;
+    return *ptr0;
+  }
+
+  uint32_t GetSwitch1(uint64_t link_id) {
+    uint64_t link_ = link_id;
+    uint32_t *ptr1 = ((uint32_t *) &link_)+1;
+    return *ptr1;
+  }
+
+  uint64_t GetLinkId(uint32_t switch_id0, uint32_t switch_id1) {
+
+    uint64_t link_id = 0;
+
+    uint32_t *ptr0 = (uint32_t *) &link_id;
+    uint32_t *ptr1 = ((uint32_t *) &link_id)+1;
+        
+    *ptr0 = switch_id0 < switch_id1 ? switch_id0 : switch_id1;
+    *ptr1 = switch_id0 > switch_id1 ? switch_id0 : switch_id1;
+    
+    return link_id;
+  }
+
 protected:
   Ptr<Ipv4> m_ipv4; // IPv4 instance for this router
   previous_packets m_filter;
+
+  // keep per link bandwidth information
+  std::map<uint64_t, uint64_t> *bandwidth_per_link; // link is defined by the two end points
 };
 
 }

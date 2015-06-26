@@ -145,17 +145,28 @@ UdpEchoServer::HandleRead (Ptr<Socket> socket)
 
   Ptr<Packet> packet;
   Address from;
+  
   while ((packet = socket->RecvFrom (from)))
     {
+
+      const size_t s = (const size_t) sizeof(double);
+      uint8_t buf[s];
+
+      NS_LOG_LOGIC("s is " << s << ", packet size is " << packet->GetSize());
+  
+      packet->CopyData(buf, s);
+      double *sent_time_ptr = (double *) buf;
+      double sent_time = *sent_time_ptr;
+
       if (InetSocketAddress::IsMatchingType (from))
         {
-          NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<
+          NS_LOG_INFO ("[" << sent_time << "] At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<
                        InetSocketAddress::ConvertFrom (from).GetIpv4 () << " port " <<
                        InetSocketAddress::ConvertFrom (from).GetPort ());
         }
       else if (Inet6SocketAddress::IsMatchingType (from))
         {
-          NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<
+          NS_LOG_INFO ("[" << sent_time << "] At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<
                        Inet6SocketAddress::ConvertFrom (from).GetIpv6 () << " port " <<
                        Inet6SocketAddress::ConvertFrom (from).GetPort ());
         }

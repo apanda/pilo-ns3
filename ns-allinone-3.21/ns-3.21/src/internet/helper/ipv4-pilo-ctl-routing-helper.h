@@ -6,6 +6,7 @@
 #ifndef IPV4_PILO_CTL_ROUTING_HELPER_H
 #define IPV4_PILO_CTL_ROUTING_HELPER_H
 #include "ns3/ipv4-routing-helper.h"
+#include "ns3/ipv4-pilo-ctl-routing.h"
 namespace ns3 {
 class Ipv4PiloCtlRoutingHelper : public Ipv4RoutingHelper {
 public:
@@ -27,6 +28,7 @@ public:
    */
   virtual Ptr<Ipv4RoutingProtocol> Create (Ptr<Node> node) const;
 
+  Ptr<Ipv4PiloCtlRouting> GetPiloCtlRouting (Ptr<Ipv4> ipv4) const;
 };
 }
 #endif

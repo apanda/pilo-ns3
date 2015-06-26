@@ -195,6 +195,7 @@ main (int argc, char *argv[])
 
   // TODO: Change this/make this more general.
   p2p.SetDeviceAttribute("DataRate", StringValue("10Gbps"));
+  p2p.SetDeviceAttribute("Mtu", UintegerValue(15000));
   p2p.SetChannelAttribute("Delay", TimeValue(Time::FromDouble(0.25, Time::MS))); 
 
 
@@ -257,7 +258,7 @@ main (int argc, char *argv[])
 
   /************ BEGIN PILO CONTROLLER TEST ************/
 
-  uint32_t MaxPacketSize = 1024;
+  uint32_t MaxPacketSize = 4096;
   Time interPacketInterval = Seconds (0.05);
   uint32_t maxPacketCount = 1;
 
@@ -292,22 +293,71 @@ main (int argc, char *argv[])
   apps.Start (Seconds (2.0));
   apps.Stop (Seconds (700.0));
 
-  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-  Simulator::Schedule(Seconds(3), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
+  // install applications on hosts
+  Ptr<Node> node = hostContainer.Get(0);
+  
+  UdpEchoServerHelper hostServer(port);
+  
+  apps = hostServer.Install(node);
+  apps.Start(Seconds(20.0));
+  apps.Stop(Seconds(700.0));
 
-  //partition the network
-  Simulator::Schedule(Seconds(6), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+  Ipv4Address host_addr = node->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(); 
 
-  //fail and recover links
-  for (int i = 0; i < 20; i++) {
-    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-    Simulator::Schedule(Seconds(7+i*4), &PointToPointChannel::SetLinkDown, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
-    
-    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s7"], nodeMap["s8"])]);
-    Simulator::Schedule(Seconds(9+i*4), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s1"], nodeMap["s3"])]);
+  for (NodeContainer::Iterator it = hostContainer.Begin(); it != hostContainer.End(); it++) {
+    Ptr<Node> node = *it;
+
+    UdpEchoClientHelper hostClient(host_addr, port);
+    hostClient.SetAttribute("Interval", TimeValue(Seconds(0.1)));
+    hostClient.SetAttribute("MaxPackets", UintegerValue(1000 * 10));
+
+    apps = hostClient.Install(node);
+    apps.Start(Seconds(20.0));
+    apps.Stop(Seconds(700.0));
   }
 
-  Simulator::Schedule(Seconds(60), &PointToPointChannel::SetLinkUp, channels[std::make_tuple(nodeMap["s4"], nodeMap["s5"])]);
+  int failure_interval = 1;
+  int num_events = 50;
+  int start_time = 30;
+  int recovery_interval = 10;
+  
+  for (int i = 0; i < num_events; i++) {
+
+    int index = rand() % setupDoc["fail_links"].size();
+
+    std::vector<std::string> parts;
+    boost::split(parts, setupDoc["fail_links"][index].as<std::string>(), boost::is_any_of("-"));
+
+    Ptr<PointToPointChannel> c = channels[std::make_tuple(nodeMap[parts[0]], nodeMap[parts[1]])];
+
+    int fail_time = start_time + failure_interval * i;
+    int recovery_time = fail_time + recovery_interval;
+
+    Simulator::Schedule(Seconds(fail_time), &PointToPointChannel::SetLinkDown, c);
+    Simulator::Schedule(Seconds(recovery_time), &PointToPointChannel::SetLinkUp, c);
+
+    NS_LOG_LOGIC("Setting down link " << parts[0] << "-" << parts[1] << " at time " << fail_time);
+    NS_LOG_LOGIC("Setting up link " << parts[0] << "-" << parts[1] << " at time " << recovery_time);
+  }
+
+  // Get bandwidth info
+  for (NodeContainer::Iterator it = switchContainer.Begin(); 
+       it != switchContainer.End(); it++) {
+    // Get node.
+    Ptr<Node> node = *it;
+    Ptr<Ipv4PiloCtlRouting> ctl = ctlRouting.GetPiloCtlRouting(node->GetObject<Ipv4>());
+    Simulator::Schedule(Seconds(700.0), &Ipv4PiloCtlRouting::GetBandwidthInfo, ctl);
+  }
+
+  Ptr<PiloController> c1 = controllerContainer.Get(0)->GetApplication(0)->GetObject<PiloController>();
+  Simulator::Schedule(Seconds(700.0), &PiloController::GetBandwidthInfo, c1);
+
+  Ptr<PiloController> c2 = controllerContainer.Get(1)->GetApplication(0)->GetObject<PiloController>();
+  Simulator::Schedule(Seconds(700.0), &PiloController::GetBandwidthInfo, c2);
+  Simulator::Schedule(Seconds(700.0), &PiloController::CurrentLog, c1);
+  Simulator::Schedule(Seconds(700.0), &PiloController::CurrentLog, c2);
+
+  // fail random links
 
   /************ END PILO CONTROLLER TEST ************/
 

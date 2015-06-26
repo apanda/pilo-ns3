@@ -379,6 +379,15 @@ public:
   size_t CtlGossipHelper(uint32_t switch_id, uint64_t link_id, uint8_t *buf);
   void AssignRoutes();
 
+  void GetBandwidthInfo() {
+    double bw = (double) total_bytes  * 8 / 1000.0 / Simulator::Now().GetSeconds();
+    printf("[bw][Controller] bandwidth: %f Mb/s\n", bw);
+  }
+
+  void AddBandwidth(uint64_t bytes) {
+    total_bytes += bytes;
+  }
+
 protected:
   virtual void DoDispose (void);
 
@@ -412,8 +421,11 @@ private:
   int link_state_send_counter;
   int max_counter;
 
+  std::map<uint64_t, uint64_t> *bandwidth_per_link;
+  uint64_t total_bytes;
+
   static const int gc = 5;
-  static const int final_time = 200;
+  static const int final_time = 700;
 };
 
 } // namespace ns3
