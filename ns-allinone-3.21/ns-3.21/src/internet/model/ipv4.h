@@ -395,7 +395,7 @@ public:
    *
    * \returns a smart pointer to the instantiated raw socket
    */
-  virtual Ptr<Socket> CreatePiloCtlSocket (void) { NS_ASSERT (false); };
+  virtual Ptr<Socket> CreatePiloCtlSocket (void) { NS_ASSERT (false); return 0;};
 
   /**
    * \brief Deletes a particular PILO socket

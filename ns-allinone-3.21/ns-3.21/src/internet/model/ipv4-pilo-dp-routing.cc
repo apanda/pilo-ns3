@@ -141,7 +141,7 @@ Ipv4PiloDPRouting::RouteInput(Ptr<const Packet> p,
   std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash>::iterator it_end = m_routingTable.end();
   
   for (; it !=it_end; it++) {
-    std::cout << "[" << this->switch_id << "] routing entry " << it->first << ", " << it->second << std::endl;
+    //std::cout << "[" << this->switch_id << "] routing entry " << it->first << ", " << it->second << std::endl;
   }
   
   if (m_routingTable.find(dest) != m_routingTable.end() && 
