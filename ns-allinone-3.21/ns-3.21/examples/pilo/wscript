@@ -13,11 +13,11 @@ def configure(conf):
     have_yaml = conf.check_cfg(package='yaml-cpp', args=['--cflags', '--libs'],
                                uselib_store='YAML', mandatory=True)
     conf.env['LINKFLAGS_YAML'] = conf.check_cfg(package='yaml-cpp', args=['--libs'],
-                                 uselib_store='YAML', mandatory=True)
+                                 uselib_store='YAML', mandatory=True).strip()
     conf.env['CCFLAGS_YAML'] = conf.check_cfg(package='yaml-cpp', args=['--cflags'],
-                                 uselib_store='YAML-CC', mandatory=True)
+                                 uselib_store='YAML-CC', mandatory=True).strip()
     conf.env['CFLAGS_YAML'] = conf.check_cfg(package='yaml-cpp', args=['--cflags'],
-                                 uselib_store='YAML-C', mandatory=True)
+                                 uselib_store='YAML-C', mandatory=True).strip()
     conf.env['CXXFLAGS_YAML'] = conf.env['CCFLAGS_YAML']
     print "Configure flags " + conf.env['LINKFLAGS_YAML'] + "   " + conf.env['CCFLAGS_YAML']
 
