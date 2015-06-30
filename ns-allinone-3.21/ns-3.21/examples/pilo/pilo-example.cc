@@ -169,8 +169,13 @@ main (int argc, char *argv[])
     Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
     Ptr<Ipv4PiloDPRouting> routing = dpRouting.GetPiloDPRouting(ipv4);
     routing->SetSwitchId(switch_id);
+    std::cout << "Switch ID: " << switch_id << ", node ID: " << node->GetId() << std::endl;
     ++switch_id;
   }  
+  for (auto node : nodeMap) {
+    NS_LOG_INFO(node.first << " " << n.Get(node.second)->GetId());
+  }
+
 
   // Controllers only route PILO packets
   InternetStackHelper controllerInternet;
@@ -211,6 +216,7 @@ main (int argc, char *argv[])
     boost::split(parts, setupDoc["links"][i].as<std::string>(), boost::is_any_of("-"));
     links.push_back(std::make_pair(parts[0], parts[1]));
     linksNative.push_back(std::make_pair(nodeMap[parts[0]], nodeMap[parts[1]]));
+    std::cout << "Link between " << parts[0] << ", " << parts[1] << " --> " << n.Get(nodeMap[parts[0]])->GetId() << ", " << n.Get(nodeMap[parts[1]])->GetId() << std::endl;
     NodeContainer linkNodes(n.Get(nodeMap[parts[0]]));
     linkNodes.Add(n.Get(nodeMap[parts[1]]));
     NetDeviceContainer device = p2p.Install(linkNodes);
@@ -261,46 +267,35 @@ main (int argc, char *argv[])
   uint32_t MaxPacketSize = 4096;
   Time interPacketInterval = Seconds (0.05);
   uint32_t maxPacketCount = 1;
+  uint16_t port = 6500;  
 
-  Ptr<Node> cNode1 = controllerContainer.Get(0);
-  Ptr<Node> cNode2 = controllerContainer.Get(1);
-  uint16_t port = 6500;
-  Ipv4Address serverAddress1 = cNode1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
-  Ipv4Address serverAddress2 = cNode2->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+  double start_time = 2.0;
+  double end_time = 100.0;
 
-  // Create a test controller
-  PiloControllerHelper controller1(serverAddress1, port);
-  controller1.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  controller1.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  controller1.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  //controller1.SetAttribute ("NodeSend", UintegerValue (nodeMap["h0"]));
-  //controller1.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(1)->GetId()));
-
-  // Create a test controller
-  PiloControllerHelper controller2(serverAddress2, port);
-  controller2.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  controller2.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  controller2.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
-  //controller2.SetAttribute ("NodeSend", UintegerValue (nodeMap["s1"]));
-  //controller2.SetAttribute ("NodeSend", UintegerValue (controllerContainer.Get(0)->GetId()));
-  
   ApplicationContainer apps;
-  apps = controller1.Install (cNode1);
-  apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (700.0));  
 
-  apps = controller2.Install (cNode2);
-  apps.Start (Seconds (2.0));
-  apps.Stop (Seconds (700.0));
+  for (NodeContainer::Iterator it = controllerContainer.Begin(); 
+       it != controllerContainer.End(); it++) {
+    Ptr<Node> cnode = *it;
+    Ipv4Address addr = cnode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+    PiloControllerHelper ch(addr, port);
+    ch.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+    ch.SetAttribute ("Interval", TimeValue (interPacketInterval));
+    ch.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
+    apps = ch.Install (cnode);
+    apps.Start (Seconds (start_time));
+    apps.Stop (Seconds (end_time));  
+  }
+ 
   // install applications on hosts
   Ptr<Node> node = hostContainer.Get(0);
   
   UdpEchoServerHelper hostServer(port);
   
   apps = hostServer.Install(node);
-  apps.Start(Seconds(20.0));
-  apps.Stop(Seconds(700.0));
+  apps.Start(Seconds(start_time));
+  apps.Stop(Seconds(end_time));
 
   Ipv4Address host_addr = node->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(); 
 
@@ -312,33 +307,33 @@ main (int argc, char *argv[])
     hostClient.SetAttribute("MaxPackets", UintegerValue(1000 * 10));
 
     apps = hostClient.Install(node);
-    apps.Start(Seconds(20.0));
-    apps.Stop(Seconds(700.0));
+    apps.Start(Seconds(start_time));
+    apps.Stop(Seconds(end_time));
   }
 
-  int failure_interval = 1;
-  int num_events = 50;
-  int start_time = 30;
-  int recovery_interval = 10;
+  // int failure_interval = 1;
+  // int num_events = 20;
+  // int start_time = 30;
+  // int recovery_interval = 10;
   
-  for (int i = 0; i < num_events; i++) {
+  // for (int i = 0; i < num_events; i++) {
 
-    int index = rand() % setupDoc["fail_links"].size();
+  //   int index = rand() % setupDoc["fail_links"].size();
 
-    std::vector<std::string> parts;
-    boost::split(parts, setupDoc["fail_links"][index].as<std::string>(), boost::is_any_of("-"));
+  //   std::vector<std::string> parts;
+  //   boost::split(parts, setupDoc["fail_links"][index].as<std::string>(), boost::is_any_of("-"));
 
-    Ptr<PointToPointChannel> c = channels[std::make_tuple(nodeMap[parts[0]], nodeMap[parts[1]])];
+  //   Ptr<PointToPointChannel> c = channels[std::make_tuple(nodeMap[parts[0]], nodeMap[parts[1]])];
 
-    int fail_time = start_time + failure_interval * i;
-    int recovery_time = fail_time + recovery_interval;
+  //   int fail_time = start_time + failure_interval * i;
+  //   int recovery_time = fail_time + recovery_interval;
 
-    Simulator::Schedule(Seconds(fail_time), &PointToPointChannel::SetLinkDown, c);
-    Simulator::Schedule(Seconds(recovery_time), &PointToPointChannel::SetLinkUp, c);
+  //   Simulator::Schedule(Seconds(fail_time), &PointToPointChannel::SetLinkDown, c);
+  //   Simulator::Schedule(Seconds(recovery_time), &PointToPointChannel::SetLinkUp, c);
 
-    NS_LOG_LOGIC("Setting down link " << parts[0] << "-" << parts[1] << " at time " << fail_time);
-    NS_LOG_LOGIC("Setting up link " << parts[0] << "-" << parts[1] << " at time " << recovery_time);
-  }
+  //   NS_LOG_LOGIC("Setting down link " << parts[0] << "-" << parts[1] << " at time " << fail_time);
+  //   NS_LOG_LOGIC("Setting up link " << parts[0] << "-" << parts[1] << " at time " << recovery_time);
+  // }
 
   // Get bandwidth info
   for (NodeContainer::Iterator it = switchContainer.Begin(); 
@@ -346,16 +341,16 @@ main (int argc, char *argv[])
     // Get node.
     Ptr<Node> node = *it;
     Ptr<Ipv4PiloCtlRouting> ctl = ctlRouting.GetPiloCtlRouting(node->GetObject<Ipv4>());
-    Simulator::Schedule(Seconds(700.0), &Ipv4PiloCtlRouting::GetBandwidthInfo, ctl);
+    Simulator::Schedule(Seconds(end_time), &Ipv4PiloCtlRouting::GetBandwidthInfo, ctl);
   }
 
   Ptr<PiloController> c1 = controllerContainer.Get(0)->GetApplication(0)->GetObject<PiloController>();
-  Simulator::Schedule(Seconds(700.0), &PiloController::GetBandwidthInfo, c1);
+  Simulator::Schedule(Seconds(end_time), &PiloController::GetBandwidthInfo, c1);
 
   Ptr<PiloController> c2 = controllerContainer.Get(1)->GetApplication(0)->GetObject<PiloController>();
-  Simulator::Schedule(Seconds(700.0), &PiloController::GetBandwidthInfo, c2);
-  Simulator::Schedule(Seconds(700.0), &PiloController::CurrentLog, c1);
-  Simulator::Schedule(Seconds(700.0), &PiloController::CurrentLog, c2);
+  Simulator::Schedule(Seconds(end_time), &PiloController::GetBandwidthInfo, c2);
+  Simulator::Schedule(Seconds(end_time), &PiloController::CurrentLog, c1);
+  Simulator::Schedule(Seconds(end_time), &PiloController::CurrentLog, c2);
 
   // fail random links
 

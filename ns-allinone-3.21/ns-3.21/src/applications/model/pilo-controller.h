@@ -46,6 +46,48 @@ namespace ns3 {
   typedef graph_traits <Graph>::vertex_descriptor vertex_descriptor;
   typedef std::pair<uint32_t, uint32_t> Edge;
   typedef Graph::edge_descriptor edge_descriptor;
+
+  class AddRouteMessage {
+  public:
+    AddRouteMessage() {
+      message = new std::map<uint32_t, uint32_t>();
+    }
+
+    ~AddRouteMessage() {
+      delete message;
+    }
+    
+    int copy_buf(uint8_t *buf, int max_size) {
+      // copy all events into buf
+      size_t ret_size = sizeof(uint32_t) * 2 * message->size();
+      if (ret_size > (size_t) max_size) {
+        return -1;
+      } else {
+
+        std::map<uint32_t, uint32_t>::iterator it = message->begin();
+        std::map<uint32_t, uint32_t>::iterator it_end = message->end();
+        int count = 0;
+        
+        for (; it != it_end; it++) {
+          uint32_t dest_addr = it->first;
+          uint32_t switch_node = it->second;
+          
+          memcpy(buf + count * sizeof(uint32_t), (uint8_t *) &dest_addr, sizeof(uint32_t));
+          ++count;
+          memcpy(buf + count * sizeof(uint32_t), (uint8_t *) &switch_node, sizeof(uint32_t));
+          ++count;
+        }
+
+        return (int) ret_size;
+      }
+    }
+
+    void add_entry(uint32_t dest, uint32_t switch_node) {
+      (*message)[dest] = switch_node;
+    }
+
+    std::map<uint32_t, uint32_t> *message;
+  };
   
   class LinkEvent {
     
@@ -425,7 +467,7 @@ private:
   uint64_t total_bytes;
 
   static const int gc = 5;
-  static const int final_time = 700;
+  static const int final_time = 100;
 };
 
 } // namespace ns3

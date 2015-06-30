@@ -134,9 +134,20 @@ Ipv4PiloDPRouting::RouteInput(Ptr<const Packet> p,
   // Check if we have a routing entry
   Ipv4Address dest = header.GetDestination();
   NS_LOG_LOGIC ("Attempting to get routing table entry for destination address " << dest.Get());
+  std::cout << Simulator::Now().GetSeconds() << " Switch " << this->switch_id << " attempting to get routing table entry for destination address " << dest.Get() << ", " << dest << std::endl;
+
+  // DEBUG ONLY -- print out routing table
+  std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash>::iterator it = m_routingTable.begin();
+  std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash>::iterator it_end = m_routingTable.end();
+  
+  for (; it !=it_end; it++) {
+    std::cout << "[" << this->switch_id << "] routing entry " << it->first << ", " << it->second << std::endl;
+  }
+  
   if (m_routingTable.find(dest) != m_routingTable.end() && 
       m_routingTable[dest] < m_ipv4->GetNInterfaces()) {
     NS_LOG_LOGIC ("Forwarding packet out interface " << m_routingTable[dest]); 
+    std::cout << Simulator::Now().GetSeconds() << " Switch " << this->switch_id << " Forwarding packet out interface " << m_routingTable[dest] << std::endl; 
     Ptr<Ipv4Route> rtentry = 0;
     rtentry = Create<Ipv4Route> ();
     rtentry->SetDestination (header.GetDestination());
@@ -305,59 +316,70 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       {
         Ipv4PiloDPRoutingHelper dpRouting;
         
-        uint8_t add_route_buf[8];
-        pkt->CopyData(add_route_buf, 8);
-
-        uint32_t *host_addr_ptr = (uint32_t *) (add_route_buf);
-        uint32_t host_addr = *host_addr_ptr;
-        uint32_t *route_node_id_ptr = (uint32_t *) (add_route_buf + 4);
-        uint32_t route_node_id = *route_node_id_ptr;
-
-        NS_LOG_LOGIC("AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << ", route_node_id " << 
-                     route_node_id);
-
-        for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+        const size_t s = (const size_t) pkt->GetSize();
+        uint8_t add_route_buf[s];
+        pkt->CopyData(add_route_buf, pkt->GetSize());
         
-          Ptr<NetDevice> dev = m_ipv4->GetNetDevice(i);
-          Ptr<Channel> chan = dev->GetChannel();
-          if (chan != 0) {
-            Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
-            Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
+        size_t total_size = 0;
+
+        while (total_size < s) {
+          
+
+          uint32_t *host_addr_ptr = (uint32_t *) (add_route_buf);
+          uint32_t host_addr = *host_addr_ptr;
+          uint32_t *route_node_id_ptr = (uint32_t *) (add_route_buf + 4);
+          uint32_t route_node_id = *route_node_id_ptr;
+
+          total_size += 2 * sizeof(uint32_t);
+
+          NS_LOG_LOGIC("AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << ", route_node_id " << 
+                       route_node_id);
+
+          //std::cout << Simulator::Now().GetSeconds() << " AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << ", route_node_id " << route_node_id << std::endl;
+
+          for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++) {
+        
+            Ptr<NetDevice> dev = m_ipv4->GetNetDevice(i);
+            Ptr<Channel> chan = dev->GetChannel();
+            if (chan != 0) {
+              Ptr<Node> node0 = chan->GetDevice(0)->GetNode();
+              Ptr<Node> node1 = chan->GetDevice(1)->GetNode();
             
-            if (node0 == m_ipv4->GetObject<Node>()) {
-              // node1 could be a host
-              // check address
-              Ptr<Ipv4PiloDPRouting> dp_node1 = dpRouting.GetPiloDPRouting(node1->GetObject<Ipv4>());
-              if (dp_node1 != 0) {
-                if (dp_node1->switch_id == route_node_id) {
-                  NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id
-                               << ", other switch is " << dp_node1->switch_id);
-                  m_routingTable[Ipv4Address(host_addr)] = i;
+              if (node0 == m_ipv4->GetObject<Node>()) {
+                // node1 could be a host
+                // check address
+                Ptr<Ipv4PiloDPRouting> dp_node1 = dpRouting.GetPiloDPRouting(node1->GetObject<Ipv4>());
+                if (dp_node1 != 0) {
+                  if (dp_node1->switch_id == route_node_id) {
+                    NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id
+                                 << ", other switch is " << dp_node1->switch_id);
+                    m_routingTable[Ipv4Address(host_addr)] = i;
+                  }
+                } else {
+                  // node1 is a host, check to see if it's the target host node
+                  uint32_t addr = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+                  //NS_LOG_LOGIC("Node 1 is host with address " << addr);
+                  if (addr == host_addr) {
+                    m_routingTable[Ipv4Address(host_addr)] = i;
+                    NS_LOG_LOGIC("Destination " << host_addr << " routed directly to host through interface " << i << " at switch " << this->switch_id);
+                  }
                 }
               } else {
-                // node1 is a host, check to see if it's the target host node
-                uint32_t addr = node1->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
-                //NS_LOG_LOGIC("Node 1 is host with address " << addr);
-                if (addr == host_addr) {
-                  m_routingTable[Ipv4Address(host_addr)] = i;
-                  NS_LOG_LOGIC("Destination " << host_addr << " routed directly to host through interface " << i << " at switch " << this->switch_id);
-                }
-              }
-            } else {
-              Ptr<Ipv4PiloDPRouting> dp_node0 = dpRouting.GetPiloDPRouting(node0->GetObject<Ipv4>());
-              if (dp_node0 != 0) {
-                if (dp_node0->switch_id == route_node_id) {
-                  NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id
-                               << ", other switch is " << dp_node0->switch_id);
-                  m_routingTable[Ipv4Address(host_addr)] = i;
-                }
-              } else {
-                // node0 is a host, check to see if it's the target host node
-                uint32_t addr = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
-                //NS_LOG_LOGIC("Node 0 is host with address " << addr);
-                if (addr == host_addr) {
-                  m_routingTable[Ipv4Address(host_addr)] = i;
-                  NS_LOG_LOGIC("Destination " << host_addr << " routed directly to host through interface " << i << " at switch " << this->switch_id);
+                Ptr<Ipv4PiloDPRouting> dp_node0 = dpRouting.GetPiloDPRouting(node0->GetObject<Ipv4>());
+                if (dp_node0 != 0) {
+                  if (dp_node0->switch_id == route_node_id) {
+                    NS_LOG_LOGIC("Destination " << host_addr << " routed through interface " << i << " at switch " << this->switch_id
+                                 << ", other switch is " << dp_node0->switch_id);
+                    m_routingTable[Ipv4Address(host_addr)] = i;
+                  }
+                } else {
+                  // node0 is a host, check to see if it's the target host node
+                  uint32_t addr = node0->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal().Get();
+                  //NS_LOG_LOGIC("Node 0 is host with address " << addr);
+                  if (addr == host_addr) {
+                    m_routingTable[Ipv4Address(host_addr)] = i;
+                    NS_LOG_LOGIC("Destination " << host_addr << " routed directly to host through interface " << i << " at switch " << this->switch_id);
+                  }
                 }
               }
             }
@@ -502,10 +524,19 @@ Ipv4PiloDPRouting::HandleRead (Ptr<Socket> socket) {
   Address from;
   PiloHeader piloHeader;
   while ((packet = socket->RecvFrom (from))) {
-    //NS_LOG_LOGIC("HandleRead packet " << packet->GetSize());
+    //NS_LOG_LOGIC("HandleRead packet " << packet->GetSize());k
     if (packet->GetSize() > 0) {
       packet->RemoveHeader(piloHeader);
       //NS_LOG_LOGIC("Processing actual PILO packet " << piloHeader);
+      // if (piloHeader.GetTargetNode() == 48 && piloHeader.GetType() == AddRoute) {
+      //   uint8_t add_route_buf[8];
+      //   packet->CopyData(add_route_buf, 8);
+
+      //   uint32_t *host_addr_ptr = (uint32_t *) (add_route_buf);
+      //   uint32_t host_addr = *host_addr_ptr;
+
+      //   //std::cout << Simulator::Now().GetSeconds() << " Switch " << this->switch_id << ", " << m_ipv4->GetObject<Node>()->GetId() << " receives addroute info from target node with node ID "  << piloHeader.GetTargetNode() << " going to host " << host_addr << std::endl;
+      // }
       if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES ||
           piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
         HandlePiloControlPacket(piloHeader, packet);

@@ -250,7 +250,8 @@ PiloController::GetLinkState (void)
 
   // reschedule itself
   if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
-    Simulator::Schedule (Seconds(60), &PiloController::GetLinkState, this);
+    //std::cout << "Server " << GetNode()->GetId() << " is sending GetLinkState() message " << std::endl;
+    Simulator::Schedule (Seconds(10), &PiloController::GetLinkState, this);
     link_state_send_counter++;
   }
 }
@@ -362,6 +363,8 @@ PiloController::GetLinkState (void)
               uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
               packet->CopyData(buf, packet->GetSize());
               
+              size_t size_before = log->num_link_events();
+
               size_t total_size = 0;
 
               while (total_size < packet->GetSize()) {
@@ -374,11 +377,17 @@ PiloController::GetLinkState (void)
 
               free(buf);
 
+              size_t size_after = log->num_link_events();
+
+              if (size_after != size_before) {
+                AssignRoutes();
+              }
+
             } else if (piloHdr.GetType() == LinkStateReply) {
-              //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
+              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
               
               // get total number of events
-              size_t size_before = log->num_link_events();
+              //size_t size_before = log->num_link_events();
 
               const size_t len = (const size_t) packet->GetSize();
               uint8_t buf[len];
@@ -393,6 +402,8 @@ PiloController::GetLinkState (void)
               //Ipv4Address *addr = (Ipv4Address *) buf_ptr;
               //buf_ptr += sizeof(Ipv4Address);
 
+              bool has_new_events = false;
+
               (*mapping)[*switch_id_ptr] = piloHdr.GetSourceNode();
               //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " -- Source node ID for switch " << *switch_id_ptr << " is " << piloHdr.GetSourceNode());
               
@@ -400,6 +411,7 @@ PiloController::GetLinkState (void)
 
               if (hosts->find(switch_id) == hosts->end()) {
                 (*hosts)[switch_id] = new std::vector<uint32_t>();
+                has_new_events = true;
               }
               (*hosts)[switch_id]->clear();
 
@@ -408,18 +420,22 @@ PiloController::GetLinkState (void)
                 if (m->is_host) {
                   (*hosts)[switch_id]->push_back(m->other_switch_id);
                   //NS_LOG_LOGIC("switch_id: " << m->switch_id << " is connected to host " << m->other_switch_id);
-                  
                 } else {
+                  if (!log->event_in_log(m->switch_id, m->link_id, m->event_id, m->state)) {
+                    has_new_events = true;
+                  }
+
                   log->put_event(m->switch_id, m->link_id, m->event_id, m->state);
                   //NS_LOG_LOGIC("switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state);
+                  //std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() << " receives linkstate reply switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state << std::endl;
 
                 }
                 counter++;
               }
 
-              size_t size_after = log->num_link_events();
-
-              if (size_after != size_before) {
+              //size_t size_after = log->num_link_events();
+              
+              if (has_new_events) {
                 AssignRoutes();
               }
 
@@ -554,7 +570,7 @@ PiloController::GetLinkState (void)
     
     // reschedule itself
     if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
-      Simulator::Schedule (Seconds(1), &PiloController::CtlGossip, this);
+      Simulator::Schedule (Seconds(5.0 + rand() % 5), &PiloController::CtlGossip, this);
       gossip_send_counter++;
     }
         
@@ -653,6 +669,8 @@ PiloController::GetLinkState (void)
   }
 
   void PiloController::AssignRoutes() {
+    std::cout << Simulator::Now().GetSeconds() << ": AssignRoutes() called\n";
+    bool resched = false;
     // for all switches, construct graph from the most "recent" link state events
     std::set<uint32_t> *switches = new std::set<uint32_t>();
     std::map<uint64_t, bool> *connection_graph = new std::map<uint64_t, bool>();
@@ -712,6 +730,7 @@ PiloController::GetLinkState (void)
         add_edge(switch0, switch1, 1, g);
         add_edge(switch1, switch0, 1, g);
         NS_LOG_LOGIC("Adding edge between " << switch0 << " and " << switch1);
+        std::cout << Simulator::Now().GetSeconds() << " Adding edge between " << switch0 << " and " << switch1 << std::endl;
       }
       NS_LOG_LOGIC("Edge between " << switch0 << " and " << switch1 << " state is " << it->second);
     }
@@ -733,6 +752,7 @@ PiloController::GetLinkState (void)
         add_edge(s, counter, 1, g);
         add_edge(counter, s, 1, g);
         NS_LOG_LOGIC("End adding edge between " << s << " and " << host_list->at(i));
+        std::cout << Simulator::Now().GetSeconds() << " Adding edge between " << s << " and " << host_list->at(i) << std::endl;
         ++counter;
       }
     }
@@ -740,6 +760,9 @@ PiloController::GetLinkState (void)
     //property_map<Graph, edge_weight_t>::type weightmap = get(edge_weight, g);
     //std::set<uint32_t>::iterator s_it = switches->begin();
     //std::set<uint32_t>::iterator s_it_end = switches->end();
+
+    // ordered by switch_id
+    std::map<uint32_t, AddRouteMessage *> *messages_to_send =  new std::map<uint32_t, AddRouteMessage *>();
 
     std::map<uint32_t, uint32_t>::iterator h_id_it = host_ids->begin();
     std::map<uint32_t, uint32_t>::iterator h_id_it_end = host_ids->end();
@@ -763,6 +786,8 @@ PiloController::GetLinkState (void)
       for (boost::tie(vi, vend) = vertices(g); vi != vend; ++vi) {
         NS_LOG_LOGIC("parent(" << *vi << ") = " << p[*vi]);
 
+        std::cout << "Server " << GetNode()->GetId() << " Run dijkstra on host " << host_id << ", " << host_addr << ", on switch " << *vi << ", parent(vi) = " << p[*vi] << std::endl;
+
         // message mapping: destination IP --> routing switch ID
         if (host_id == *vi || *vi >= switches->size()) {
           continue;
@@ -770,39 +795,69 @@ PiloController::GetLinkState (void)
          
         uint32_t idx = *vi;
         uint32_t last_node = p[idx];
-        // while (true) {
-        //   if (p[idx] == host_id || p[idx] == idx) {
-        //     break;
-        //   }
 
-        //   last_node = idx;
-        //   idx = p[idx];
-        // }
         NS_LOG_LOGIC("Destination " << host_addr << " Needs routing from " << last_node << " from current node " << *vi);
 
         if (mapping->find(*vi) != mapping->end()) {
+
+          if (messages_to_send->find(*vi) == messages_to_send->end()) {
+            (*messages_to_send)[*vi] = new AddRouteMessage();
+          }
           
           // TODO: make this step more efficient
-          uint8_t *buf = (uint8_t *) malloc(8);
+          // uint8_t *buf = (uint8_t *) malloc(8);
           
-          uint32_t *dest_addr = (uint32_t *) buf;
-          *dest_addr = host_addr;
-          uint32_t * switch_ptr = (uint32_t *) (buf + sizeof(uint32_t));
-          *switch_ptr = last_node;
-          uint32_t switch_node = (*mapping)[*vi];
+          // uint32_t *dest_addr = (uint32_t *) buf;
+          // *dest_addr = host_addr;
+          // uint32_t * switch_ptr = (uint32_t *) (buf + sizeof(uint32_t));
+          // *switch_ptr = last_node;
+          // uint32_t switch_node = (*mapping)[*vi];
+
+          (*messages_to_send)[*vi]->add_entry(host_addr, last_node);
           
-          Ptr<Packet> p = Create<Packet> (buf, 8);
-          if ((m_socket->SendPiloMessage(switch_node, AddRoute, p)) >= 0) {
-            NS_LOG_INFO ("Sent AddRoute message to switch " << *vi << " with node id " << switch_node << " for address " << *dest_addr);
-          }
+        } else {
+          // reschedule assign routes
+          resched = true;
         }
         
       }
     }
 
+    std::map<uint32_t, AddRouteMessage *>::iterator msg_it = messages_to_send->begin();
+    std::map<uint32_t, AddRouteMessage *>::iterator msg_it_end = messages_to_send->end();
+
+    size_t buffer_size = host_ids->size() * 2 * sizeof(uint32_t) * switches->size();
+    uint8_t *buffer = (uint8_t *) malloc(buffer_size);
+
+    for (; msg_it != msg_it_end; msg_it++) {
+      
+      size_t ret_size = msg_it->second->copy_buf(buffer, buffer_size);
+      NS_ASSERT(ret_size <= buffer_size);
+
+      uint32_t switch_node = (*mapping)[msg_it->first];
+      
+      Ptr<Packet> p = Create<Packet> (buffer, ret_size);
+      if ((m_socket->SendPiloMessage(switch_node, AddRoute, p)) >= 0) {
+        //NS_LOG_INFO ("Sent AddRoute message to switch " << *vi << " with node id " << switch_node << " for address " << *dest_addr);
+        //std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() << " Sending add route message to switch " << msg->first << " for address " << *dest_addr << ", node id is " << switch_node << std::endl;
+      }
+    }
+
+    // GC
+    msg_it = messages_to_send->begin();
+    for (; msg_it != msg_it_end; msg_it++) {
+      delete msg_it->second;
+    }
+
     delete switches;
     delete connection_graph;
     delete host_ids;
+    free(buffer);
+
+    if (resched) {
+      std::cout << "Server " << GetNode()->GetId() << " rescheduling AssignRoutes() " << std::endl;
+      Simulator::Schedule (Seconds(1), &PiloController::AssignRoutes, this);
+    }
     
     // if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
     //   Simulator::Schedule (Seconds(1), &PiloController::AssignRoutes, this);
@@ -816,12 +871,14 @@ PiloController::GetLinkState (void)
     log->reset_event_iterator();
 
     NS_LOG_LOGIC("Server " << GetNode()->GetId() << " current log: ");
+    std::cout << "Server " << GetNode()->GetId() << " current log: " << std::endl;
     while (true) {
       LinkEvent *e = log->get_next_event();
       if (e == NULL) 
         break;
 
       NS_LOG_LOGIC("link_event: [" << e->switch_id << ", " << e->link_id << ", " << e->event_id << ", " << e->state << "]");
+      std::cout << "link_event: [" << e->switch_id << ", " << e->link_id << ", " << e->event_id << ", " << e->state << "]" << std::endl;
     }
   }
 
