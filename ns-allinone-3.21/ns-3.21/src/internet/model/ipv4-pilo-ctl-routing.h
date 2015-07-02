@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <unordered_map>
 #include <unordered_set>
+#include <cinttypes>
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv4-header.h"
 #include "ns3/socket.h"
@@ -155,7 +156,7 @@ public:
       uint32_t switch1 = GetSwitch1(link_id);
 
       double bw = (double) (bytes) * 8 / 1000.0 / (Simulator::Now().GetSeconds());
-      printf("[bw]Link id: %lu, %u-%u -- bandwidth: %f Mb/s\n", link_id, switch0, switch1, bw);
+      printf("[bw]Link id: %" PRIu64 ", %u-%u -- bandwidth: %f Mb/s\n", link_id, switch0, switch1, bw);
       
     }
     printf("[bw]Bandwidth info done for switch %u\n", dp_node->GetSwitchId());
