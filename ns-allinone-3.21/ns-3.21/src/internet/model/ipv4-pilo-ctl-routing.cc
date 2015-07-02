@@ -138,7 +138,6 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
   uint32_t iifIdx = m_ipv4->GetInterfaceForDevice(idev);
 
 
-  // Locally deliver if necessary
   // Local delivery is unnecessary, PiloSocket is raw and in promiscuous mode, so it
   // delivers everything
   //if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES) {
@@ -163,7 +162,7 @@ Ipv4PiloCtlRouting::RouteInput(Ptr<const Packet> p,
       rtentry->SetGateway (Ipv4Address::GetZero ());
       rtentry->SetOutputDevice (m_ipv4->GetNetDevice(i));
       rtentry->SetSource (m_ipv4->GetAddress (i, 0).GetLocal ());
-      ucb(rtentry, p->Copy(), header);
+      ucb(rtentry, p, header);
     } else {
       NS_LOG_LOGIC ("Not forwarding packet out interface " << i << " since received"); 
     }
