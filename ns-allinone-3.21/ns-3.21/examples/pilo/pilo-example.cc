@@ -269,7 +269,8 @@ main (int argc, char *argv[])
   uint32_t maxPacketCount = 1;
   uint16_t port = 6500;  
 
-  double start_time = 2.0;
+  double controller_start_time = 2.0;
+  double start_time = 20.0;
   double end_time = 100.0;
 
   ApplicationContainer apps;
@@ -284,7 +285,7 @@ main (int argc, char *argv[])
     ch.SetAttribute ("PacketSize", UintegerValue (MaxPacketSize));
 
     apps = ch.Install (cnode);
-    apps.Start (Seconds (start_time));
+    apps.Start (Seconds (controller_start_time));
     apps.Stop (Seconds (end_time));  
   }
  
@@ -344,13 +345,12 @@ main (int argc, char *argv[])
     Simulator::Schedule(Seconds(end_time), &Ipv4PiloCtlRouting::GetBandwidthInfo, ctl);
   }
 
-  Ptr<PiloController> c1 = controllerContainer.Get(0)->GetApplication(0)->GetObject<PiloController>();
-  Simulator::Schedule(Seconds(end_time), &PiloController::GetBandwidthInfo, c1);
-
-  Ptr<PiloController> c2 = controllerContainer.Get(1)->GetApplication(0)->GetObject<PiloController>();
-  Simulator::Schedule(Seconds(end_time), &PiloController::GetBandwidthInfo, c2);
-  Simulator::Schedule(Seconds(end_time), &PiloController::CurrentLog, c1);
-  Simulator::Schedule(Seconds(end_time), &PiloController::CurrentLog, c2);
+  for (NodeContainer::Iterator it = controllerContainer.Begin();
+       it != controllerContainer.End(); it++) {
+    Ptr<PiloController> c = (*it)->GetApplication(0)->GetObject<PiloController>();
+    Simulator::Schedule(Seconds(10.0), &PiloController::AssignRoutes, c);
+    Simulator::Schedule(Seconds(end_time), &PiloController::GetBandwidthInfo, c);
+  }
 
   // fail random links
 

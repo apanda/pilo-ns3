@@ -192,6 +192,8 @@ Queue::Drop (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << p);
 
+  std::cout << "Dropping packet " << std::endl;
+
   m_nTotalDroppedPackets++;
   m_nTotalDroppedBytes += p->GetSize ();
 

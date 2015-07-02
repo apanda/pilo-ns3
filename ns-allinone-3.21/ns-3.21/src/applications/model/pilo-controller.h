@@ -227,7 +227,7 @@ namespace ns3 {
     void put_event(uint32_t switch_id, uint64_t link_id, uint64_t event_id, bool state) {
       LinkEvent *e = new LinkEvent(switch_id, link_id, event_id, state);
       log->insert(e);
-      links->insert(e->link_id);
+      links->insert(link_id);
     }
 
     void reset_event_iterator() {
@@ -466,8 +466,13 @@ private:
   std::map<uint64_t, uint64_t> *bandwidth_per_link;
   uint64_t total_bytes;
 
+  bool assign_routes_called;
+  size_t total_add_route_msg;
+
   static const int gc = 5;
   static const int final_time = 100;
+
+  std::set<uint64_t> id_seen;
 };
 
 } // namespace ns3

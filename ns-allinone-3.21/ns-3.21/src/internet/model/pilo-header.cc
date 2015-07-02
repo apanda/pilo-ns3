@@ -16,15 +16,18 @@ NS_OBJECT_ENSURE_REGISTERED (PiloHeader);
 
 PiloHeader::PiloHeader (uint32_t source, 
                         uint32_t target, 
-                        PiloMessageType type) :
+                        PiloMessageType type, 
+                        uint64_t id) :
                         m_sourceNode (source),
                         m_targetNode (target),
-                        m_type (type) {
+                        m_type (type),
+                        m_id (id) {
 }
 
 PiloHeader::PiloHeader() : m_sourceNode (0),
-                        m_targetNode (0),
-                        m_type (NOP) {
+                           m_targetNode (0),
+                           m_type (NOP),
+                           m_id (0) {
 }
 
 uint32_t 
@@ -36,6 +39,10 @@ uint32_t PiloHeader::GetTargetNode () const {
 }
 PiloMessageType PiloHeader::GetType () const {
   return m_type;
+}
+uint64_t
+PiloHeader::GetId() const {
+  return m_id;
 }
 
 TypeId
@@ -62,7 +69,7 @@ uint32_t
 PiloHeader::GetSerializedSize (void) const
 {
   NS_LOG_FUNCTION (this);
-  return 3*sizeof(uint32_t);
+  return 3*sizeof(uint32_t) + sizeof(uint64_t);
 }
 
 void
@@ -73,6 +80,7 @@ PiloHeader::Serialize (Buffer::Iterator start) const
   i.WriteHtonU32 (m_sourceNode);
   i.WriteHtonU32 (m_targetNode);
   i.WriteHtonU32 (m_type);
+  i.WriteHtonU64 (m_id);
 }
 uint32_t
 PiloHeader::Deserialize (Buffer::Iterator start)
@@ -82,6 +90,7 @@ PiloHeader::Deserialize (Buffer::Iterator start)
   m_sourceNode = i.ReadNtohU32();
   m_targetNode = i.ReadNtohU32();
   m_type = (PiloMessageType)i.ReadNtohU32();
+  m_id = i.ReadNtohU64();
   return GetSerializedSize ();
 }
 

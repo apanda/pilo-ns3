@@ -15,6 +15,19 @@
 NS_LOG_COMPONENT_DEFINE ("PiloSocket");
 namespace ns3 {
 
+  uint64_t rand_64_num() {
+    static uint64_t x=123456789, y=362436069, z=521288629;
+    uint64_t t;
+    x ^= x << 16;
+    x ^= x >> 5;
+    x ^= x << 1;
+    t = x;
+    x = y;
+    y = z;
+    z = t ^ x ^ y;
+    return z;
+  } 
+
 NS_OBJECT_ENSURE_REGISTERED (PiloSocket);
 
 TypeId 
@@ -84,7 +97,8 @@ PiloSocket::SendTo (Ptr<Packet> p, uint32_t flags,
 int
 PiloSocket::SendPiloMessage(uint32_t target, PiloMessageType type, Ptr<Packet> packet) {
   NS_LOG_FUNCTION (this << target << type << packet);
-  PiloHeader header(m_node->GetId(), target, type);
+  PiloHeader header(m_node->GetId(), target, type, rand_64_num());
+  //std::cout << "Constructing header with source " << m_node->GetId() << ", target " << target << ", type " << type << ", ID " << header.GetId() << std::endl;
   packet->AddHeader(header);
   return Socket::Send(packet);
 }
@@ -93,6 +107,25 @@ bool
 PiloSocket::DeliverPacket (const Ipv4Header& ipHeader) {
   // We could add check for whether the packet is supposed to be received by this node or not, etc.
   NS_LOG_FUNCTION (this << ipHeader);
+  // if (!ipHeader.IsPiloControl()) {
+  //   return false;
+  // }
+  
+
+  // if (m_filter.find(piloHeader.GetSourceNode()) != m_filter.end() &&
+  //     m_filter[piloHeader.GetSourceNode()].find(header.GetIdentification())  != 
+  //     m_filter[piloHeader.GetSourceNode()].end()) {
+
+  // PiloHeader piloHeader;
+  // ipHeader.PeekHeader(piloHeader);
+
+  // if (id_seen.find(piloHeader.GetId()) != id_seen.end()) {
+  //   return false;
+  // }
+
+  // id_seen.insert(piloHeader.GetId());
+  // return true;
+
   return ipHeader.IsPiloControl();
 }
 

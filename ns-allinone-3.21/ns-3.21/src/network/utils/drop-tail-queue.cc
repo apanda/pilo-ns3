@@ -40,12 +40,12 @@ TypeId DropTailQueue::GetTypeId (void)
                                     QUEUE_MODE_PACKETS, "QUEUE_MODE_PACKETS"))
     .AddAttribute ("MaxPackets", 
                    "The maximum number of packets accepted by this DropTailQueue.",
-                   UintegerValue (1000),
+                   UintegerValue (5000),
                    MakeUintegerAccessor (&DropTailQueue::m_maxPackets),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("MaxBytes", 
                    "The maximum number of bytes accepted by this DropTailQueue.",
-                   UintegerValue (1000 * 65535),
+                   UintegerValue (5000 * 65535),
                    MakeUintegerAccessor (&DropTailQueue::m_maxBytes),
                    MakeUintegerChecker<uint32_t> ())
   ;

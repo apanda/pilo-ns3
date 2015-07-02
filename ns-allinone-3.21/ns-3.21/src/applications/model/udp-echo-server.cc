@@ -163,6 +163,11 @@ UdpEchoServer::HandleRead (Ptr<Socket> socket)
           NS_LOG_INFO ("[" << sent_time << "] At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<
                        InetSocketAddress::ConvertFrom (from).GetIpv4 () << " port " <<
                        InetSocketAddress::ConvertFrom (from).GetPort ());
+          
+          std::cout << "[" << sent_time << "] At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<
+            InetSocketAddress::ConvertFrom (from).GetIpv4 () << " port " <<
+            InetSocketAddress::ConvertFrom (from).GetPort () << std::endl;
+
         }
       else if (Inet6SocketAddress::IsMatchingType (from))
         {

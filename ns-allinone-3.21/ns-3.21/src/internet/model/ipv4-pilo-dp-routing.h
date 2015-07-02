@@ -17,6 +17,7 @@
 #include "ns3/pilo-socket-factory.h"
 #include "ns3/pilo-socket.h"
 #include "ns3/pilo-header.h"
+#include <random>
 
 namespace ns3 {
 class Packet;
@@ -167,7 +168,7 @@ public:
   uint32_t GetSwitchId();
   uint64_t GetLinkId(uint32_t switch_id0, uint32_t switch_id1);
   uint32_t GetOtherSwitchId(uint64_t link_, uint32_t switch_id);
-  void SendLinkStates();
+  void SendLinkStates(uint32_t target);
 
 protected:
   void HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> pkt);
@@ -181,6 +182,12 @@ protected:
   uint32_t switch_id;
   std::map<uint64_t, link_state> *link_states; // link_id: event_id
   std::set<uint32_t> *hosts; // a set of hosts that are currently connected to this switch
+
+  std::set<uint64_t> id_seen;
+
+  std::random_device rd;
+  std::mt19937 gen;
+  std::uniform_real_distribution<double> dis;
 };
 
 }

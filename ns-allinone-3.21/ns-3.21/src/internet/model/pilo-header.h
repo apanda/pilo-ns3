@@ -30,11 +30,12 @@ class PiloHeader : public Header {
 public:
   // Broadcast address
   static const uint32_t ALL_NODES = 0xffffffff;
-  PiloHeader (uint32_t source, uint32_t target, PiloMessageType type);
+  PiloHeader (uint32_t source, uint32_t target, PiloMessageType type, uint64_t id);
   PiloHeader ();
   uint32_t GetSourceNode () const;
   uint32_t GetTargetNode () const;
   PiloMessageType GetType () const;
+  uint64_t GetId() const;
 
   static TypeId GetTypeId (void);
 
@@ -50,6 +51,7 @@ protected:
   uint32_t m_sourceNode;
   uint32_t m_targetNode;
   PiloMessageType m_type;
+  uint64_t m_id;
 };
 }
 

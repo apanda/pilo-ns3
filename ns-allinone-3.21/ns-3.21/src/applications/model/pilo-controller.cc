@@ -95,6 +95,8 @@ PiloController::PiloController ()
   link_state_send_counter = 0;
   max_counter = 20;
   total_bytes = 0;
+  total_add_route_msg = 0;
+  assign_routes_called = false;
 }
 
 PiloController::~PiloController ()
@@ -175,7 +177,7 @@ PiloController::StartApplication (void)
   // start gossiping
   Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
   // start gc
-  Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
+  //Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
 }
 
 void
@@ -251,7 +253,7 @@ PiloController::GetLinkState (void)
   // reschedule itself
   if (Simulator::Now().Compare(Seconds(final_time)) < 0) {
     //std::cout << "Server " << GetNode()->GetId() << " is sending GetLinkState() message " << std::endl;
-    Simulator::Schedule (Seconds(10), &PiloController::GetLinkState, this);
+    Simulator::Schedule (Seconds(60), &PiloController::GetLinkState, this);
     link_state_send_counter++;
   }
 }
@@ -270,10 +272,19 @@ PiloController::GetLinkState (void)
             
             PiloHeader piloHdr;
             packet->RemoveHeader (piloHdr);
+            
+            if (id_seen.find(piloHdr.GetId()) != id_seen.end()) {
+              printf("id already seen\n");
+              continue;
+            }
+            
+            id_seen.insert(piloHdr.GetId());
+
             if (piloHdr.GetType() == EchoAck) {
               NS_LOG_LOGIC("Received EchoAck from " << piloHdr.GetSourceNode());
               NS_ASSERT(piloHdr.GetTargetNode() == GetNode()->GetId());
             } else if (piloHdr.GetType() == GossipRequest) {
+              std::cout << "GossipRequest called " << std::endl;
               std::set<LinkEvent *, SortLinkEvent> *result = new std::set<LinkEvent *, SortLinkEvent>();
 
               uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
@@ -381,19 +392,22 @@ PiloController::GetLinkState (void)
               free(buf);
 
               if (has_new_events && Simulator::Now().GetSeconds() > 10) {
+                std::cout << Simulator::Now().GetSeconds() << ": AssignRoutes() called from Gossip reply\n";
                 AssignRoutes();
               }
 
             } else if (piloHdr.GetType() == LinkStateReply) {
-              NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
+              //NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode());
               
               // get total number of events
               //size_t size_before = log->num_link_events();
 
               const size_t len = (const size_t) packet->GetSize();
-              uint8_t buf[len];
+              std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() << " received LinkStateReply message from " << piloHdr.GetSourceNode() << " id: " << piloHdr.GetId() << " packet size is " << packet->GetSize() << std::endl;
+
+              uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
               packet->CopyData(buf, packet->GetSize());
-              
+
               // put the switch ID in local mapping: switch_id -> source node
               uint8_t *buf_ptr = buf;
               uint32_t *switch_id_ptr = (uint32_t *) buf_ptr;
@@ -424,9 +438,9 @@ PiloController::GetLinkState (void)
                 } else {
                   if (!log->event_in_log(m->switch_id, m->link_id, m->event_id, m->state)) {
                     has_new_events = true;
+                    log->put_event(m->switch_id, m->link_id, m->event_id, m->state);
                   }
-
-                  log->put_event(m->switch_id, m->link_id, m->event_id, m->state);
+                  
                   //NS_LOG_LOGIC("switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state);
                   //std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() << " receives linkstate reply switch_id: " << m->switch_id << ", other switch id: " << m->other_switch_id << ", link id: " << m->link_id << ", event_id: " << m->event_id << ", state: " << m->state << std::endl;
 
@@ -434,16 +448,27 @@ PiloController::GetLinkState (void)
                 counter++;
               }
 
+
+              //std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() <<  " Current log size: " << log->num_link_events() * sizeof(LinkEvent) << std::endl;
               //size_t size_after = log->num_link_events();
               
               if (has_new_events && Simulator::Now().GetSeconds() > 10) {
-                AssignRoutes();
+
+                if (!assign_routes_called) {
+                  // there are new events, need to recalculate, but schedule for a delayed response
+                  std::cout << "Scheduling AssignRoutes at " << Simulator::Now().GetSeconds() + 2 << std::endl;
+                  //Simulator::Schedule (Seconds(2.0), &PiloController::AssignRoutes, this);
+                  //assign_routes_called = true;
+                }
               }
+
+              free(buf);
 
             } else {
               NS_LOG_LOGIC("Server " << GetNode()->GetId() << " received some other type " << piloHdr.GetType() <<
                            " from " << piloHdr.GetSourceNode());
             }
+
           }
       }
   }
@@ -670,7 +695,9 @@ PiloController::GetLinkState (void)
   }
 
   void PiloController::AssignRoutes() {
-    std::cout << Simulator::Now().GetSeconds() << ": AssignRoutes() called\n";
+    assign_routes_called = false;
+    std::cout << "Server " << GetNode()->GetId() << " AssignRoutes() called" << std::endl;
+
     bool resched = false;
     // for all switches, construct graph from the most "recent" link state events
     std::set<uint32_t> *switches = new std::set<uint32_t>();
@@ -731,7 +758,7 @@ PiloController::GetLinkState (void)
         add_edge(switch0, switch1, 1, g);
         add_edge(switch1, switch0, 1, g);
         NS_LOG_LOGIC("Adding edge between " << switch0 << " and " << switch1);
-        std::cout << Simulator::Now().GetSeconds() << " Adding edge between " << switch0 << " and " << switch1 << std::endl;
+        //std::cout << Simulator::Now().GetSeconds() << " Adding edge between " << switch0 << " and " << switch1 << std::endl;
       }
       NS_LOG_LOGIC("Edge between " << switch0 << " and " << switch1 << " state is " << it->second);
     }
@@ -815,6 +842,8 @@ PiloController::GetLinkState (void)
           // uint32_t switch_node = (*mapping)[*vi];
 
           (*messages_to_send)[*vi]->add_entry(host_addr, last_node);
+
+          //std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() << " sending add route message to switch " << *vi << " for address " << host_addr << " " << Ipv4Address(host_addr) << ", node id is " << (*mapping)[*vi] << std::endl;
           
         } else {
           // reschedule assign routes
@@ -841,6 +870,7 @@ PiloController::GetLinkState (void)
       if ((m_socket->SendPiloMessage(switch_node, AddRoute, p)) >= 0) {
         //NS_LOG_INFO ("Sent AddRoute message to switch " << *vi << " with node id " << switch_node << " for address " << *dest_addr);
         //std::cout << Simulator::Now().GetSeconds() << " Server " << GetNode()->GetId() << " Sending add route message to switch " << msg->first << " for address " << *dest_addr << ", node id is " << switch_node << std::endl;
+        total_add_route_msg++;
       }
     }
 
@@ -850,10 +880,14 @@ PiloController::GetLinkState (void)
       delete msg_it->second;
     }
 
+    delete messages_to_send;
+
     delete switches;
     delete connection_graph;
     delete host_ids;
     free(buffer);
+
+    std::cout << Simulator::Now().GetSeconds() <<  " Server " << GetNode()->GetId() << " sent add route message number: " << total_add_route_msg << std::endl;
 
     if (resched) {
       //std::cout << "Server " << GetNode()->GetId() << " rescheduling AssignRoutes() " << std::endl;

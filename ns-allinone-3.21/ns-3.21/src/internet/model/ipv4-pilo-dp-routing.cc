@@ -33,6 +33,9 @@ Ipv4PiloDPRouting::Ipv4PiloDPRouting ():
   switch_id = 0;
   link_states = new std::map<uint64_t, link_state>();
   hosts = new std::set<uint32_t>();
+
+  gen = std::mt19937(rd());
+  dis = std::uniform_real_distribution<double>(0, 1);
 }
 
 Ipv4PiloDPRouting::~Ipv4PiloDPRouting() {
@@ -141,7 +144,7 @@ Ipv4PiloDPRouting::RouteInput(Ptr<const Packet> p,
   std::unordered_map<Ipv4Address, uint32_t, Ipv4AddressHash>::iterator it_end = m_routingTable.end();
   
   for (; it !=it_end; it++) {
-    //std::cout << "[" << this->switch_id << "] routing entry " << it->first << ", " << it->second << std::endl;
+    std::cout << "[" << this->switch_id << "] routing entry " << it->first << ", " << it->second << std::endl;
   }
   
   if (m_routingTable.find(dest) != m_routingTable.end() && 
@@ -202,7 +205,9 @@ Ipv4PiloDPRouting::NotifyInterfaceUp(uint32_t iface) {
     NS_LOG_LOGIC ("Ignoring non-point-to-point device " << iface);
   }
 
-  SendLinkStates();
+  if (Simulator::Now().GetSeconds() > 5) {
+    SendLinkStates(PiloHeader::ALL_NODES);
+  }
 }
 
 void
@@ -244,7 +249,9 @@ Ipv4PiloDPRouting::NotifyInterfaceDown(uint32_t iface) {
     }
   }
 
-  SendLinkStates();
+  if (Simulator::Now().GetSeconds() > 5) {
+    SendLinkStates(PiloHeader::ALL_NODES);
+  }
   
   // Need to regenerate the m_ifaceToNode table, since ifaces change
   m_ifaceToNode.clear();
@@ -325,15 +332,17 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
         while (total_size < s) {
           
 
-          uint32_t *host_addr_ptr = (uint32_t *) (add_route_buf);
+          uint32_t *host_addr_ptr = (uint32_t *) (add_route_buf + total_size);
           uint32_t host_addr = *host_addr_ptr;
-          uint32_t *route_node_id_ptr = (uint32_t *) (add_route_buf + 4);
+          uint32_t *route_node_id_ptr = (uint32_t *) (add_route_buf + total_size + 4);
           uint32_t route_node_id = *route_node_id_ptr;
 
           total_size += 2 * sizeof(uint32_t);
 
           NS_LOG_LOGIC("AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << ", route_node_id " << 
                        route_node_id);
+         
+          //std::cout << Simulator::Now().GetSeconds() << " AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << " " << Ipv4Address(host_addr) << ", route_node_id " << route_node_id << std::endl;
 
           //std::cout << Simulator::Now().GetSeconds() << " AddRoute called at switch " << this->switch_id << " with host_addr " << host_addr << ", route_node_id " << route_node_id << std::endl;
 
@@ -389,7 +398,12 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
       break;
     case LinkState:
       {
-        SendLinkStates();
+        Simulator::Schedule(Seconds(dis(gen)), &Ipv4PiloDPRouting::SendLinkStates, this, hdr.GetSourceNode());
+        
+        // DEBUG
+        if (this->switch_id == 40) {
+          std::cout << Simulator::Now().GetSeconds() << " SendLinkStates() called at switch " << this->switch_id  << " from source node " << hdr.GetSourceNode() << ", id is " << hdr.GetId() << std::endl;
+        }
       }
       break;
     // case LinkStateReply:
@@ -404,7 +418,8 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
 
 }
 
-  void Ipv4PiloDPRouting::SendLinkStates() {
+  void Ipv4PiloDPRouting::SendLinkStates(uint32_t target) {
+    
     hosts->clear();
     // find the hosts connected to this switch
     Ipv4StaticRoutingHelper sRouting;
@@ -467,7 +482,7 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
         
     const size_t total_size = (const size_t) (link_states->size() * sizeof(InterfaceStateMessage) + sizeof(uint32_t) + hosts->size() * sizeof(InterfaceStateMessage));
 
-    uint8_t buf[total_size];
+    uint8_t *buf = (uint8_t *) malloc(total_size);
     uint8_t *buf_ptr = buf;
 
     // first store the switch_id
@@ -511,10 +526,16 @@ Ipv4PiloDPRouting::HandlePiloControlPacket (const PiloHeader& hdr, Ptr<Packet> p
     }
 
     Ptr<Packet> p = Create<Packet> (buf, total_size);
-    if (m_socket->SendPiloMessage(PiloHeader::ALL_NODES, LinkStateReply, p) < 0) {
+    //Ptr<Packet> p = Create<Packet> (buf, sizeof(uint32_t) + sizeof(InterfaceStateMessage));
+    if (m_socket->SendPiloMessage(target, LinkStateReply, p) < 0) {
       NS_LOG_LOGIC("Error sending link state reply");
     }
+
+    free(buf);
+
   }
+
+
 
 // Called when a PILO control packet is received over the control connection.
 void 
@@ -539,7 +560,10 @@ Ipv4PiloDPRouting::HandleRead (Ptr<Socket> socket) {
       // }
       if (piloHeader.GetTargetNode() == PiloHeader::ALL_NODES ||
           piloHeader.GetTargetNode() == m_ipv4->GetObject<Node>()->GetId()) {
-        HandlePiloControlPacket(piloHeader, packet);
+        if (id_seen.find(piloHeader.GetId()) == id_seen.end()) {
+          id_seen.insert(piloHeader.GetId());
+          HandlePiloControlPacket(piloHeader, packet);
+        }
       } else {
         //NS_LOG_LOGIC ("Ignoring PILO packet not intended for me.");
       }
