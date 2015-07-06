@@ -270,8 +270,8 @@ main (int argc, char *argv[])
   uint16_t port = 6500;  
 
   double controller_start_time = 2.0;
-  double start_time = 20.0;
-  double end_time = 100.0;
+  double start_time = 100.0;
+  double end_time = 500.0;
 
   ApplicationContainer apps;
 
@@ -312,29 +312,31 @@ main (int argc, char *argv[])
     apps.Stop(Seconds(end_time));
   }
 
-  // int failure_interval = 1;
-  // int num_events = 20;
-  // int start_time = 30;
-  // int recovery_interval = 10;
+  int failure_interval = 1;
+  int num_events = 200;
+  int recovery_interval = 10;
   
-  // for (int i = 0; i < num_events; i++) {
+  for (int i = 0; i < num_events; i++) {
 
-  //   int index = rand() % setupDoc["fail_links"].size();
+    int index = rand() % setupDoc["fail_links"].size();
 
-  //   std::vector<std::string> parts;
-  //   boost::split(parts, setupDoc["fail_links"][index].as<std::string>(), boost::is_any_of("-"));
+    std::vector<std::string> parts;
+    boost::split(parts, setupDoc["fail_links"][index].as<std::string>(), boost::is_any_of("-"));
 
-  //   Ptr<PointToPointChannel> c = channels[std::make_tuple(nodeMap[parts[0]], nodeMap[parts[1]])];
+    Ptr<PointToPointChannel> c = channels[std::make_tuple(nodeMap[parts[0]], nodeMap[parts[1]])];
 
-  //   int fail_time = start_time + failure_interval * i;
-  //   int recovery_time = fail_time + recovery_interval;
+    int fail_time = start_time + failure_interval * i;
+    int recovery_time = fail_time + recovery_interval;
 
-  //   Simulator::Schedule(Seconds(fail_time), &PointToPointChannel::SetLinkDown, c);
-  //   Simulator::Schedule(Seconds(recovery_time), &PointToPointChannel::SetLinkUp, c);
+    Simulator::Schedule(Seconds(fail_time), &PointToPointChannel::SetLinkDown, c);
+    Simulator::Schedule(Seconds(recovery_time), &PointToPointChannel::SetLinkUp, c);
 
-  //   NS_LOG_LOGIC("Setting down link " << parts[0] << "-" << parts[1] << " at time " << fail_time);
-  //   NS_LOG_LOGIC("Setting up link " << parts[0] << "-" << parts[1] << " at time " << recovery_time);
-  // }
+    NS_LOG_LOGIC("Setting down link " << parts[0] << "-" << parts[1] << " at time " << fail_time);
+    NS_LOG_LOGIC("Setting up link " << parts[0] << "-" << parts[1] << " at time " << recovery_time);
+
+    std::cout << "Setting down link " << parts[0] << "-" << parts[1] << " at time " << fail_time << std::endl;
+    std::cout << "Setting up link " << parts[0] << "-" << parts[1] << " at time " << recovery_time << std::endl;
+  }
 
   // Get bandwidth info
   for (NodeContainer::Iterator it = switchContainer.Begin(); 

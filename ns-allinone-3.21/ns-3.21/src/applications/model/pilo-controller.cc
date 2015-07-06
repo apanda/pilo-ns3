@@ -177,7 +177,7 @@ PiloController::StartApplication (void)
   // start gossiping
   Simulator::Schedule (Seconds (0.0), &PiloController::CtlGossip, this);
   // start gc
-  //Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
+  Simulator::Schedule (Seconds (0.1), &PiloController::GarbageCollect, this);
 }
 
 void
@@ -284,7 +284,7 @@ PiloController::GetLinkState (void)
               NS_LOG_LOGIC("Received EchoAck from " << piloHdr.GetSourceNode());
               NS_ASSERT(piloHdr.GetTargetNode() == GetNode()->GetId());
             } else if (piloHdr.GetType() == GossipRequest) {
-              std::cout << "GossipRequest called " << std::endl;
+              //std::cout << "GossipRequest called " << std::endl;
               std::set<LinkEvent *, SortLinkEvent> *result = new std::set<LinkEvent *, SortLinkEvent>();
 
               uint8_t *buf = (uint8_t *) malloc(packet->GetSize());
@@ -580,17 +580,20 @@ PiloController::GetLinkState (void)
       
       total_actual_size += CtlGossipHelper(s0, link_id, buf+total_actual_size);
       total_actual_size += CtlGossipHelper(s1, link_id, buf+total_actual_size);
-    }
 
-    // send gossip message
-    
-    NS_LOG_LOGIC("Gossip request total size is " << total_actual_size);
-    
-    NS_ASSERT(total_possible_size >= total_actual_size);
-    Ptr<Packet> p = Create<Packet> (buf, total_actual_size);
-    if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
-      NS_LOG_INFO ("Sent gossip message to all controller nodes" );
-    }
+
+      // send gossip message
+      NS_LOG_LOGIC("Gossip request total size is " << total_actual_size);
+
+      NS_ASSERT(total_possible_size >= total_actual_size);
+      Ptr<Packet> p = Create<Packet> (buf, total_actual_size);
+      if ((m_socket->SendPiloMessage(PiloHeader::ALL_NODES, GossipRequest, p)) >= 0) {
+        NS_LOG_INFO ("Sent gossip message to all controller nodes" );
+      }
+
+      total_actual_size = 0;
+      
+    }    
 
     free(buf);
     
